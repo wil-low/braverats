@@ -1,0 +1,13 @@
+{
+    // Enable format on save globally
+    "editor.formatOnSave": true,
+    // Set the default formatter for C/C++ files
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    // Optional: Specify the path to your clang-format executable
+    "C_Cpp.clang_format_path": "/usr/bin/clang-format",
+}

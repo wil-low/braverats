@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "console",
+            "type": "shell",
+            "command": "make", // The command you want to run
+            "options": {
+                "cwd": "${workspaceFolder}/console"
+            },
+            "presentation": {
+                "reveal": "always" // Reveals the terminal when the task runs
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true // Makes this the default build task (run with Ctrl+Shift+B)
+            }
+        },
+        {
+            "label": "gamebuino",
+            "type": "shell",
+            "command": "make", // The command you want to run
+            "options": {
+                "cwd": "${workspaceFolder}/gamebuino"
+            },
+            "presentation": {
+                "reveal": "always" // Reveals the terminal when the task runs
+            },
+            "problemMatcher": "$gcc",
+            "group": {
+                "kind": "build",
+                "isDefault": false // Makes this the default build task (run with Ctrl+Shift+B)
+            }
+        }
+    ]
+}
