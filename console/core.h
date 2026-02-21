@@ -23,14 +23,8 @@ typedef enum {
     General,
     Prince,
     CardCount,
-    UnknownCard = 255
+    UnknownCard = CardCount
 } Card;
-
-typedef enum {
-    EffectNone = 0,
-    EffectOpponentReveals,
-    EffectStrength
-} Effect;
 
 typedef enum {
     RR_Player0 = 0,
@@ -38,7 +32,8 @@ typedef enum {
     RR_Hold,
     RR_Player0_GameWon,
     RR_Player1_GameWon,
-    RR_NoResult
+    RR_NoResult,
+    RR_Result_Count = RR_NoResult,
 } RoundResult;
 
 typedef struct {
@@ -50,12 +45,13 @@ typedef enum {
     Human = 0,
     Level_1,
     Level_2,
+    Level_3,
 } AILevel;
 
 typedef struct {
     AILevel _level;
     Deck _hand;
-    Effect _effect;
+    Card _effect;
     uint8_t _score;
     uint16_t _victory_count;
     uint8_t _unrealized_points;

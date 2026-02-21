@@ -17,7 +17,7 @@ void setup() {
     state->_id = 0;
 
     for (uint8_t i = 0; i < PLAYER_COUNT; ++i) {
-        state->_players[i]._effect = EffectNone;
+        state->_players[i]._effect = UnknownCard;
         state->_players[i]._victory_count = 0;
     }
     state->_players[0]._level = PLAYER0_LEVEL;
@@ -33,10 +33,10 @@ void loop() {
     RoundResult winner = check_winner(state);
     switch (winner) {
     case RR_Hold:
-    case RR_Player0:
-    case RR_Player1:
+    case RR_Player0_GameWon:
+    case RR_Player1_GameWon:
         if (winner != RR_Hold)
-            state->_players[winner]._victory_count++;
+            state->_players[winner - RR_Player0_GameWon]._victory_count++;
         render_winner(state, winner);
         state->_id++;
         if (state->_id > MAX_GAMES) {
@@ -53,10 +53,10 @@ void loop() {
 
     Card p0_card;
     Card p1_card;
-    if (state->_players[0]._effect == EffectOpponentReveals) {
+    if (state->_players[0]._effect == Spy) {
         p1_card = input_move(state, 1, UnknownCard);
         p0_card = input_move(state, 0, p1_card);
-    } else if (state->_players[1]._effect == EffectOpponentReveals) {
+    } else if (state->_players[1]._effect == Spy) {
         p0_card = input_move(state, 0, UnknownCard);
         p1_card = input_move(state, 1, p0_card);
     } else {

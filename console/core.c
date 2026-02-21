@@ -16,8 +16,9 @@ void new_game(GameState *state) {
             p->_remaining[n] = 1;
 #endif
         }
-        p->_effect = EffectNone;
+        p->_effect = UnknownCard;
     }
+    state->_last_result = RR_NoResult;
     state->_round_count = 0;
 }
 
@@ -25,11 +26,11 @@ GameState resolve_round(GameState *state, Card p0_card, Card p1_card) {
     GameState new_state = *state;
     state = &new_state;
     uint8_t p0_value =
-        p0_card + (state->_players[0]._effect == EffectStrength ? 2 : 0);
+        p0_card + (state->_players[0]._effect == General ? 2 : 0);
     uint8_t p1_value =
-        p1_card + (state->_players[1]._effect == EffectStrength ? 2 : 0);
+        p1_card + (state->_players[1]._effect == General ? 2 : 0);
 
-    state->_players[0]._effect = state->_players[1]._effect = EffectNone;
+    state->_players[0]._effect = state->_players[1]._effect = UnknownCard;
 
     state->_last_result = p0_value > p1_value ? RR_Player0 : RR_Player1;
     if (p0_value == p1_value)
@@ -48,14 +49,14 @@ GameState resolve_round(GameState *state, Card p0_card, Card p1_card) {
                     p0_value < p1_value ? RR_Player0 : RR_Player1;
 
             if (p0_card == Spy)
-                state->_players[0]._effect = EffectOpponentReveals;
+                state->_players[0]._effect = Spy;
             if (p1_card == Spy)
-                state->_players[1]._effect = EffectOpponentReveals;
+                state->_players[1]._effect = Spy;
 
             if (p0_card == General)
-                state->_players[0]._effect = EffectStrength;
+                state->_players[0]._effect = General;
             if (p1_card == General)
-                state->_players[1]._effect = EffectStrength;
+                state->_players[1]._effect = General;
 
             if (p0_card == Prince)
                 state->_last_result =
@@ -138,12 +139,15 @@ void remove_from_hand(GameState *state, uint8_t player_idx, Card card) {
 }
 
 RoundResult check_winner(GameState *state) {
+    if (state->_last_result == RR_Player0_GameWon ||
+        state->_last_result == RR_Player1_GameWon)
+        return state->_last_result;
     if (state->_players[0]._score >= 4 || state->_players[1]._score >= 4) {
         if (state->_players[0]._score == state->_players[1]._score)
             return RR_Hold;
         return state->_players[0]._score > state->_players[1]._score
-                   ? RR_Player0
-                   : RR_Player1;
+                   ? RR_Player0_GameWon
+                   : RR_Player1_GameWon;
     }
     return state->_round_count == 8 ? RR_Hold : RR_NoResult;
 }

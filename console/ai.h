@@ -4,6 +4,6 @@
 #include "core.h"
 #include <stdint.h>
 
-uint8_t ai_move(GameState *state, uint8_t player_idx, Card opponent_move);
+Card ai_move(GameState *state, uint8_t player_idx, Card opponent_move);
 
 #endif
