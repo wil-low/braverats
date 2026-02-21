@@ -58,10 +58,8 @@ typedef struct {
     Effect _effect;
     uint8_t _score;
     uint16_t _victory_count;
-#ifdef CSV_OUTPUT
     uint8_t _unrealized_points;
     uint8_t _remaining[CardCount];
-#endif
 } Player;
 
 typedef struct {
@@ -75,16 +73,17 @@ typedef struct {
     Round _rounds[CardCount];
     uint8_t _round_count;
     uint32_t _id;
+    RoundResult _last_result;
 } GameState;
 
 void new_game(GameState *state);
-RoundResult resolve_round(GameState *state, uint8_t p0_move, uint8_t p1_move);
-void move_cards(GameState *state, uint8_t p0_move, uint8_t p1_move,
+GameState resolve_round(GameState *state, Card p0_card, Card p1_card);
+void move_cards(GameState *state, Card p0_move, Card p1_move,
                 RoundResult result);
-void remove_from_hand(GameState *state, uint8_t player_idx, uint8_t card_idx);
+void remove_from_hand(GameState *state, uint8_t player_idx, Card card);
 RoundResult check_winner(GameState *state);
 
-uint8_t input_move(GameState *state, uint8_t player_idx, Card opponent_move);
+Card input_move(GameState *state, uint8_t player_idx, Card opponent_move);
 void input_wait(const char *message);
 
 #endif

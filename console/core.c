@@ -21,9 +21,9 @@ void new_game(GameState *state) {
     state->_round_count = 0;
 }
 
-RoundResult resolve_round(GameState *state, uint8_t p0_move, uint8_t p1_move) {
-    Card p0_card = state->_players[0]._hand._items[p0_move];
-    Card p1_card = state->_players[1]._hand._items[p1_move];
+GameState resolve_round(GameState *state, Card p0_card, Card p1_card) {
+    GameState new_state = *state;
+    state = &new_state;
     uint8_t p0_value =
         p0_card + (state->_players[0]._effect == EffectStrength ? 2 : 0);
     uint8_t p1_value =
@@ -31,23 +31,21 @@ RoundResult resolve_round(GameState *state, uint8_t p0_move, uint8_t p1_move) {
 
     state->_players[0]._effect = state->_players[1]._effect = EffectNone;
 
-    RoundResult result = p0_value > p1_value ? RR_Player0 : RR_Player1;
+    state->_last_result = p0_value > p1_value ? RR_Player0 : RR_Player1;
     if (p0_value == p1_value)
-        result = RR_Hold;
+        state->_last_result = RR_Hold;
 
     if (p0_card != Magician && p1_card != Magician) {
         // apply card effects
-        if (p0_value == p1_value || p0_card == Jester || p1_card == Jester)
-            return RR_Hold;
+        if (p0_value == p1_value || p0_card == Jester || p1_card == Jester) {
+            state->_last_result = RR_Hold;
+            return *state;
+        }
 
         if (p0_card != p1_card) {
-            if (p0_card == Princess && p1_card == Prince)
-                result = RR_Player0_GameWon;
-            if (p1_card == Princess && p0_card == Prince)
-                result = RR_Player1_GameWon;
-
             if (p0_card == Assassin || p1_card == Assassin)
-                result = p0_value < p1_value ? RR_Player0 : RR_Player1;
+                state->_last_result =
+                    p0_value < p1_value ? RR_Player0 : RR_Player1;
 
             if (p0_card == Spy)
                 state->_players[0]._effect = EffectOpponentReveals;
@@ -60,33 +58,30 @@ RoundResult resolve_round(GameState *state, uint8_t p0_move, uint8_t p1_move) {
                 state->_players[1]._effect = EffectStrength;
 
             if (p0_card == Prince)
-                result = RR_Player0;
+                state->_last_result =
+                    (p1_card == Princess) ? RR_Player1_GameWon : RR_Player0;
             if (p1_card == Prince)
-                result = RR_Player1;
+                state->_last_result =
+                    (p0_card == Princess) ? RR_Player0_GameWon : RR_Player1;
         }
     }
-
-    return result;
+    return *state;
 }
 
-void move_cards(GameState *state, uint8_t p0_move, uint8_t p1_move,
+void move_cards(GameState *state, Card p0_card, Card p1_card,
                 RoundResult result) {
-    Card p0_card = state->_players[0]._hand._items[p0_move];
-    Card p1_card = state->_players[1]._hand._items[p1_move];
     Round *round = &state->_rounds[state->_round_count++];
     round->_cards[0] = p0_card;
     round->_cards[1] = p1_card;
     round->_result = result;
 
-    remove_from_hand(state, 0, p0_move);
-    remove_from_hand(state, 1, p1_move);
+    remove_from_hand(state, 0, p0_card);
+    remove_from_hand(state, 1, p1_card);
 
     state->_players[0]._score = 0;
     state->_players[1]._score = 0;
-#ifdef CSV_OUTPUT
     state->_players[0]._unrealized_points = 0;
     state->_players[1]._unrealized_points = 0;
-#endif
     if (result != RR_Player0_GameWon && result != RR_Player1_GameWon) {
         for (uint8_t i = 0; i < state->_round_count; ++i) {
             RoundResult *rr = &state->_rounds[i]._result;
@@ -114,12 +109,10 @@ void move_cards(GameState *state, uint8_t p0_move, uint8_t p1_move,
                 state->_players[1]._score = UINT8_MAX;
                 return;
             case RR_Hold:
-#ifdef CSV_OUTPUT
                 state->_players[0]._unrealized_points +=
                     (state->_rounds[i]._cards[0] == Minister ? 2 : 1);
                 state->_players[1]._unrealized_points +=
                     (state->_rounds[i]._cards[1] == Minister ? 2 : 1);
-#endif
                 break;
             default:
                 break;
@@ -128,13 +121,19 @@ void move_cards(GameState *state, uint8_t p0_move, uint8_t p1_move,
     }
 }
 
-void remove_from_hand(GameState *state, uint8_t player_idx, uint8_t card_idx) {
+void remove_from_hand(GameState *state, uint8_t player_idx, Card card) {
     Player *p = &state->_players[player_idx];
 #ifdef CSV_OUTPUT
     p->_remaining[p->_hand._items[card_idx]]--;
 #endif
-    for (uint8_t n = card_idx; n < p->_hand._count; ++n)
-        p->_hand._items[n] = p->_hand._items[n + 1];
+    for (uint8_t n = 0; n < p->_hand._count; ++n) {
+        if (card == p->_hand._items[n]) {
+            for (uint8_t i = n; i < p->_hand._count - 1; ++i) {
+                p->_hand._items[i] = p->_hand._items[i + 1];
+            }
+            break;
+        }
+    }
     p->_hand._count--;
 }
 
@@ -149,7 +148,7 @@ RoundResult check_winner(GameState *state) {
     return state->_round_count == 8 ? RR_Hold : RR_NoResult;
 }
 
-uint8_t input_move(GameState *state, uint8_t player_idx, Card opponent_move) {
+Card input_move(GameState *state, uint8_t player_idx, Card opponent_move) {
     if (state->_players[player_idx]._level == Human)
         return human_move(state, player_idx, opponent_move);
     return ai_move(state, player_idx, opponent_move);

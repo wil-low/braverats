@@ -51,23 +51,21 @@ void loop() {
         break;
     }
 
-    uint8_t p0_move;
-    uint8_t p1_move;
+    Card p0_card;
+    Card p1_card;
     if (state->_players[0]._effect == EffectOpponentReveals) {
-        p1_move = input_move(state, 1, UnknownCard);
-        p0_move =
-            input_move(state, 0, state->_players[1]._hand._items[p1_move]);
+        p1_card = input_move(state, 1, UnknownCard);
+        p0_card = input_move(state, 0, p1_card);
     } else if (state->_players[1]._effect == EffectOpponentReveals) {
-        p0_move = input_move(state, 0, UnknownCard);
-        p1_move =
-            input_move(state, 1, state->_players[0]._hand._items[p0_move]);
+        p0_card = input_move(state, 0, UnknownCard);
+        p1_card = input_move(state, 1, p0_card);
     } else {
-        p0_move = input_move(state, 0, UnknownCard);
-        p1_move = input_move(state, 1, UnknownCard);
+        p0_card = input_move(state, 0, UnknownCard);
+        p1_card = input_move(state, 1, UnknownCard);
     }
 
-    RoundResult result = resolve_round(state, p0_move, p1_move);
-    move_cards(state, p0_move, p1_move, result);
+    *state = resolve_round(state, p0_card, p1_card);
+    move_cards(state, p0_card, p1_card, state->_last_result);
 
     if (state->_players[0]._score >= 4 || state->_players[1]._score >= 4 ||
         state->_round_count == 8) {

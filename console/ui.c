@@ -191,7 +191,7 @@ void serialize_state(GameState *state, char *buf) {
 }
 #endif
 
-uint8_t human_move(GameState *state, uint8_t player_idx, Card opponent_move) {
+Card human_move(GameState *state, uint8_t player_idx, Card opponent_move) {
     if (opponent_move != UnknownCard)
         printf("Opponent plays: %s\n", NAMES[opponent_move]);
     int result;
@@ -199,7 +199,7 @@ uint8_t human_move(GameState *state, uint8_t player_idx, Card opponent_move) {
         printf("Enter your choice: ");
         scanf("%d", &result);
         if (result < state->_players[player_idx]._hand._count)
-            return result;
+            return state->_players[player_idx]._hand._items[result];
     }
-    return UINT8_MAX; // never reach here
+    return UnknownCard; // never reach here
 }

@@ -13,6 +13,6 @@ void serialize_header(char *buf);
 void serialize_state(GameState *state, char *buf);
 #endif
 
-uint8_t human_move(GameState *state, uint8_t player_idx, Card opponent_move);
+Card human_move(GameState *state, uint8_t player_idx, Card opponent_move);
 
 #endif
