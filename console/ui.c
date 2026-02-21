@@ -2,11 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
-const char *NAMES[] = {"Jester",   "Princess", "Spy",     "Assassin",
-                       "Minister", "Magician", "General", "Prince"};
+const char *NAMES[] = {"Jester",     "Lady",     "Spy",     "Assassin",
+                       "Chancellor", "Magician", "General", "Prince"};
 
-const char *SHORT_NAMES[] = {"Je", "Ps", "Sp", "As", "Mi",
-                             "Ma", "Ge", "PC", ""};
+const char *SHORT_NAMES[] = {"Je", "La", "Sp", "As", "Ch",
+                             "Ma", "Ge", "Pr", ""};
 
 const char *EFFECTS[] = {
     "This round’s is nullified; and put on hold",
@@ -34,12 +34,12 @@ void render_player(GameState *state, uint8_t idx) {
                p->_score, SHORT_NAMES[p->_effect]);
 
     for (uint8_t i = 0; i < p->_hand._count; ++i)
-        printf("%s ", SHORT_NAMES[p->_hand._items[i]]);
+        printf("%s  ", SHORT_NAMES[p->_hand._items[i]]);
     printf("\n");
 
     if (p->_level == Human) {
         for (uint8_t i = 0; i < p->_hand._count; ++i)
-            printf("%d  ", i);
+            printf("%d   ", i);
         printf("\n");
     }
     printf("\n");
@@ -67,7 +67,8 @@ void render_rounds(GameState *state) {
             default:
                 break;
             }
-            printf("%s%c ", SHORT_NAMES[state->_rounds[i]._cards[p]], win_mark);
+            printf("%s%c  ", SHORT_NAMES[state->_rounds[i]._cards[p]],
+                   win_mark);
         }
         printf("\n");
     }
@@ -78,7 +79,7 @@ void render_game(GameState *state) {
     printf("\n===============\n\n");
     // cheatsheet
     for (uint8_t i = 0; i < CardCount; ++i)
-        printf("%s   %-8s (%d) - %s\n", SHORT_NAMES[i], NAMES[i], i,
+        printf("%s   %-10s (%d) - %s\n", SHORT_NAMES[i], NAMES[i], i,
                EFFECTS[i]);
     printf("\n");
 
