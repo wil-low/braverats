@@ -6,10 +6,10 @@
 
 enum Card {
     Jester = 0,
-    Princess,
+    Lady,
     Spy,
     Assassin,
-    Minister,
+    Chancellor,
     Magician,
     General,
     Prince,

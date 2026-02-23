@@ -11,7 +11,7 @@ void new_game(GameState *state) {
         p->_hand._count = 0;
         for (uint8_t n = 0; n < CardCount; ++n) {
             p->_score = 0;
-            p->_hand._items[p->_hand._count++] = n;
+            p->_hand._items[p->_hand._count++] = CardCount - 1 - n;
 #ifdef CSV_OUTPUT
             p->_remaining[n] = 1;
 #endif
@@ -60,10 +60,10 @@ GameState resolve_round(GameState *state, Card p0_card, Card p1_card) {
 
             if (p0_card == Prince)
                 state->_last_result =
-                    (p1_card == Princess) ? RR_Player1_GameWon : RR_Player0;
+                    (p1_card == Lady) ? RR_Player1_GameWon : RR_Player0;
             if (p1_card == Prince)
                 state->_last_result =
-                    (p0_card == Princess) ? RR_Player0_GameWon : RR_Player1;
+                    (p0_card == Lady) ? RR_Player0_GameWon : RR_Player1;
         }
     }
     return *state;
@@ -90,14 +90,14 @@ void move_cards(GameState *state, Card p0_card, Card p1_card,
                 *rr = result;
             switch (*rr) {
             case RR_Player0:
-                if (state->_rounds[i]._cards[0] == Minister &&
+                if (state->_rounds[i]._cards[0] == Chancellor &&
                     state->_rounds[i]._cards[1] != Magician)
                     state->_players[0]._score += 2;
                 else
                     state->_players[0]._score++;
                 break;
             case RR_Player1:
-                if (state->_rounds[i]._cards[1] == Minister &&
+                if (state->_rounds[i]._cards[1] == Chancellor &&
                     state->_rounds[i]._cards[0] != Magician)
                     state->_players[1]._score += 2;
                 else
@@ -111,9 +111,9 @@ void move_cards(GameState *state, Card p0_card, Card p1_card,
                 return;
             case RR_Hold:
                 state->_players[0]._unrealized_points +=
-                    (state->_rounds[i]._cards[0] == Minister ? 2 : 1);
+                    (state->_rounds[i]._cards[0] == Chancellor ? 2 : 1);
                 state->_players[1]._unrealized_points +=
-                    (state->_rounds[i]._cards[1] == Minister ? 2 : 1);
+                    (state->_rounds[i]._cards[1] == Chancellor ? 2 : 1);
                 break;
             default:
                 break;

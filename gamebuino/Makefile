@@ -13,6 +13,7 @@ DEPS= \
 	$(SRC_PATH)/ui.h \
 	$(SRC_PATH)/pile.cpp \
 	$(SRC_PATH)/pile.h \
+	$(SRC_PATH)/sprite.h \
 	$(SRC_PATH)/config.h \
 	$(SRC_PATH)/braverats.ino
 

@@ -11,7 +11,8 @@
 enum Location {
     played1,
     played0,
-    hand0
+    hand0,
+    hand1
 };
 
 struct CardAnimation {
@@ -45,6 +46,8 @@ class UI {
     // AI level
     VersusMode _versusMode;
 
+    Card _played_cards[2];
+
     // Used to deal at the start of the game.
     CardAnimation _cardAnimations[Pile::_maxCards];
     byte _cardAnimationCount = 0;
@@ -64,11 +67,11 @@ class UI {
     void drawBoard();
     void drawSuitSelector();
     void drawRoundOver(bool is_moumou);
-    void drawDeck(Pile *deck, bool showCount);
-    void drawCard(byte x, byte y, Card card);
-    void drawValue(byte x, byte y, Card value);
+    void drawCard(byte x, byte y, Card card, uint8_t border);
+    void drawValue(byte x, byte y, Card value, bool with_bitmap);
     void drawLeftArrow(byte x, byte y);
     void drawRightArrow(byte x, byte y);
+    void drawPlus(byte x, byte y);
     void drawCursor();
     void drawDealing();
     void drawCursor(byte x, byte y, bool flipped);
@@ -89,6 +92,7 @@ class UI {
     void getCursorDestination(byte &x, byte &y, bool &flipped);
     byte updatePosition(byte current, byte destination);
     Pile *getActiveLocationPile();
+    void getCoords(Location location, byte idx, byte &x, byte &y);
 
     void drawZero(byte x, byte y);
     void drawOne(byte x, byte y);

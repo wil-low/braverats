@@ -1,8 +1,8 @@
 #include "ui.h"
 #include "ai.h"
 #include "config.h"
+#include "sprite.h"
 #include <EEPROM.h>
-#include <Gamebuino.h>
 
 #define EEPROM_MAGIC_NUMBER 171
 
@@ -13,56 +13,71 @@ extern Gamebuino gb;
 extern GameState gameState;
 
 void UI::drawBoard() {
+    byte x;
+    byte y;
+    gb.display.setColor(BLACK);
+
+    Player *p = &gameState._players[0];
+#ifdef DEBUG_PRINTS
+    // Debug prints
+    drawNumberRight(p->_hand._count, 72, 2);
+    // drawNumberRight(gameState._valid_moves._flags, 72, 10);
+
+    // drawNumberRight(gameState._valid_moves._count, 83, 17);
+    //  drawNumberRight(gameState._moumou_counter, 83, 17);
+    //  drawNumberRight(gameState._pending_cmd, 83, 17);
+    // drawNumberRight(gameState._input_cmd, 83, 25);
+
+    // debug(CardValue(gameState._last_card), CardSuit(gameState._last_card));
+    //  drawNumberRight(_mode, 83, 41);
+#else
+    // Scores
+    drawValue(70, 13, gameState._players[1]._score, false);
+    drawValue(70, 23, gameState._players[0]._score, false);
+
+    // Unrealized points
+    if (gameState._players[1]._unrealized_points >= 0) {
+        drawValue(81, 13, gameState._players[1]._unrealized_points, false);
+        drawPlus(77, 14);
+    }
+    if (gameState._players[0]._unrealized_points >= 0) {
+        drawValue(81, 23, gameState._players[0]._unrealized_points, false);
+        drawPlus(77, 24);
+    }
 
     gb.display.setColor(BLACK);
 
-#ifdef DEBUG_PRINTS
-    // Debug prints
-    drawNumberRight(gameState._cur_player, 72, 2);
-    drawNumberRight(gameState._valid_moves._flags, 72, 10);
+    // Effects
+    if (gameState._players[1]._effect == Spy)
+        gb.display.drawBitmap(75, 1, spr_sp);
+    else if (gameState._players[1]._effect == General)
+        gb.display.drawBitmap(75, 1, spr_ge);
 
-    drawNumberRight(gameState._valid_moves._count, 83, 17);
-    // drawNumberRight(gameState._moumou_counter, 83, 17);
-    // drawNumberRight(gameState._pending_cmd, 83, 17);
-    drawNumberRight(gameState._input_cmd, 83, 25);
+    if (gameState._players[0]._effect == Spy)
+        gb.display.drawBitmap(75, 32, spr_sp);
+    else if (gameState._players[0]._effect == General)
+        gb.display.drawBitmap(75, 32, spr_ge);
 
-    debug(CardValue(gameState._last_card), CardSuit(gameState._last_card));
-    // drawNumberRight(gameState._fvm_calls, 83, 33);
-    // drawNumberRight(_mode, 83, 41);
-#else
-    // Scores
-    drawNumberRight(gameState._players[1]._score, 83, 17);
-    drawNumberRight(gameState._players[0]._score, 83, 25);
+    // Played cards
+    UI::getCoords(played1, 0, x, y);
+    drawCard(x, y, _played_cards[1], 2);
+    UI::getCoords(played0, 0, x, y);
+    drawCard(x, y, _played_cards[0], 2);
 
-    // Player 1 card count
-    if (gameState._players[1]._hand._count)
-        drawNumberRight(gameState._players[1]._hand._count, 72, 8);
 #endif
-    /*
-        // Stock
-        drawDeck(&gameState._deck, false);
 
-        if (gameState._players[1]._hand._count != 0) {
-            drawCard(gameState._players[1]._hand.x,
-       gameState._players[1]._hand.y, Card(Undefined, Spades, true));
-        }
+    // Human hand
+    for (uint8_t i = 0; i < p->_hand._count; ++i) {
+        UI::getCoords(hand0, i, x, y);
+        drawCard(x, y, p->_hand.getCard(i), i == _cardIndex ? 1 : 2);
+    }
 
-        Player &p = gameState._players[0];
-
-        drawDeck(&p._hand, false);
-        if (p._hand.scrollOffset > 0)
-            drawLeftArrow(0, 38);
-        if (p._hand._count - p._hand.scrollOffset > p._hand.maxVisibleCards)
-            drawRightArrow(81, 38);
-
-        drawDeck(&gameState._table, false);
-
-        if (_mode == MODE_SELECT_SUIT) {
-            drawSuitSelector();
-        } else {
-            drawDeck(&gameState._played, false);
-        }
-            */
+    // Bot hand
+    p = &gameState._players[1];
+    for (uint8_t i = 0; i < p->_hand._count; ++i) {
+        UI::getCoords(hand1, i, x, y);
+        drawValue(x, y, p->_hand.getCard(i), false);
+    }
 }
 
 static const char round_complete[] = "ROUND COMPLETE:";
@@ -106,10 +121,8 @@ void UI::drawRoundOver(bool is_moumou) {
             gb.display.drawPixel(72, 46);
             gb.display.drawPixel(74, 46);
         }
-        if (gameState._players[0]._level != Human && _drawRoundOverTimer == 0)
-            update_score(&gameState, this);
-        else
-            _drawRoundOverTimer--;
+        if (gameState._players[0]._level != Human && _drawRoundOverTimer ==
+       0) update_score(&gameState, this); else _drawRoundOverTimer--;
             */
 }
 
@@ -123,7 +136,7 @@ void UI::drawDealing() {
         auto ca = &_cardAnimations[i];
         if (ca->x != ca->destX || ca->y != ca->destY) {
             doneDealing = false;
-            drawCard(ca->x, ca->y, ca->card);
+            drawCard(ca->x, ca->y, ca->card, false);
             ca->x = updatePosition(ca->x, ca->destX);
             ca->y = updatePosition(ca->y, ca->destY);
             if (ca->x == ca->destX && ca->y == ca->destY)
@@ -151,36 +164,11 @@ const char *const pauseMenu[] PROGMEM = {resumeOption, quitOption,
 
 bool continueGame;
 
-const byte title[] PROGMEM = {
-    64,   36,   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x80, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x06, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x04, 0x20, 0x1e,
-    0x00, 0x00, 0x00, 0x00, 0x48, 0x08, 0x10, 0x12, 0x00, 0x00, 0x00, 0x00,
-    0x84, 0x10, 0x10, 0x21, 0x00, 0x00, 0x00, 0x00, 0x48, 0x10, 0x00, 0x12,
-    0x00, 0x00, 0x00, 0x00, 0x78, 0x20, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x02, 0x00,
-    0x00, 0x00, 0x00, 0xe0, 0x00, 0x40, 0x02, 0x00, 0x07, 0x00, 0x01, 0x30,
-    0x00, 0x8c, 0x31, 0x00, 0x0c, 0x80, 0x01, 0x10, 0x7f, 0x9f, 0xf9, 0xfe,
-    0x08, 0x80, 0x01, 0x91, 0x83, 0x91, 0x89, 0x81, 0x09, 0x80, 0x00, 0xe1,
-    0x01, 0x10, 0x08, 0x80, 0x87, 0x00, 0x00, 0x02, 0x01, 0x10, 0x18, 0x80,
-    0x40, 0x00, 0x00, 0x02, 0x01, 0x08, 0x10, 0x80, 0x40, 0x00, 0x00, 0x06,
-    0x01, 0x04, 0x20, 0x80, 0x60, 0x00, 0x00, 0x3e, 0x01, 0x03, 0xc0, 0x80,
-    0x7c, 0x00, 0x00, 0x42, 0x01, 0x01, 0x80, 0x80, 0xc2, 0x00, 0x00, 0x81,
-    0x01, 0x00, 0x00, 0x80, 0x81, 0x00, 0x00, 0x81, 0x81, 0x00, 0x00, 0x81,
-    0x01, 0x00, 0x00, 0x80, 0xc3, 0xff, 0xff, 0xc3, 0x01, 0x00, 0x00, 0x80,
-    0xfc, 0x00, 0x00, 0x3f, 0x01, 0x00, 0x00, 0x47, 0x00, 0x00, 0x00, 0x00,
-    0xe2, 0x00, 0x00, 0x78, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0xe0,
-    0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x01, 0x80, 0x00, 0x00, 0x00, 0x00,
-    0x01, 0x80, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x02, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x20, 0x0c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x08, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00};
-
 UI::UI() {
     memset(_versusCount, 0, sizeof(_versusCount));
     memset(_versusWon, 0, sizeof(_versusWon));
+    _cardIndex = 0;
+    _played_cards[0] = _played_cards[1] = UnknownCard;
 }
 
 void UI::showTitle() {
@@ -192,7 +180,7 @@ start:
     else
         gb.pickRandomSeed();
     gb.battery.show = false;
-    // new_round(&gameState, this);
+    new_game(&gameState);
     readEeprom();
 
     // If there is a saved game in EEPROM, just skip right to the game.
@@ -270,40 +258,40 @@ void UI::animateMove(Pile *src, byte srcIdx, Pile *dst, byte dstIdx) {
 const uint16_t patternA[] PROGMEM = {0x0045, 0x0118, 0x0000};
 const uint16_t patternB[] PROGMEM = {0x0045, 0x0108, 0x0000};
 
-void UI::drawDeck(Pile *deck, bool showCount) { /*
-     for (int i = 0; i < deck->maxVisibleCards; ++i) {
-         if (i + deck->scrollOffset >= deck->_count)
-             break;
-         if (deck->faceUp) {
-             drawCard(
-                 deck->x + i * 11, deck->y,
-                 deck->getCard(deck->_count - (i + deck->scrollOffset) - 1));
-         } else {
-             drawCard(deck->x, deck->y, Card(Undefined, Spades, true));
-         }
-     }
-
-     if (showCount && deck->_count && !deck->faceUp) {
-         gb.display.setColor(WHITE);
-         drawNumberRight(deck->_count, deck->x + 8, deck->y + 2);
-     }*/
-}
-
-void UI::drawCard(byte x, byte y, Card card) {
+void UI::drawCard(byte x, byte y, Card card, uint8_t border) {
     // Fill
-    byte fill = WHITE;
-
-    gb.display.setColor(fill);
-    gb.display.fillRect(x + 1, y + 1, 8, 12);
+    gb.display.setColor(WHITE);
+    gb.display.fillRect(x, y, 10, 15);
+    if (card == UnknownCard)
+        return;
 
     // Draw border
     gb.display.setColor(BLACK);
-    gb.display.drawFastHLine(x + 1, y, 8);
-    gb.display.drawFastHLine(x + 1, y + 13, 8);
-    gb.display.drawFastVLine(x, y + 1, 12);
-    gb.display.drawFastVLine(x + 9, y + 1, 12);
-
-    drawValue(x + 5, y + 7, card);
+    switch (border) {
+    case 1:
+        gb.display.drawFastHLine(x + 9, y, 2);
+        gb.display.drawFastVLine(x + 10, y + 1, 1);
+        gb.display.drawFastHLine(x + 9, y + 16, 2);
+        gb.display.drawFastVLine(x + 10, y + 15, 1);
+        gb.display.drawFastHLine(x, y + 16, 2);
+        gb.display.drawFastVLine(x, y + 15, 1);
+        /*
+                gb.display.drawFastHLine(x + 8, y, 3);
+                gb.display.drawFastVLine(x + 10, y + 1, 2);
+                gb.display.drawFastHLine(x + 8, y + 16, 3);
+                gb.display.drawFastVLine(x + 10, y + 14, 2);
+                gb.display.drawFastHLine(x, y + 16, 3);
+                gb.display.drawFastVLine(x, y + 14, 2);
+        */
+        break;
+    case 2:
+        gb.display.drawFastHLine(x + 5, y, 5);
+        gb.display.drawFastHLine(x + 1, y + 16, 9);
+        gb.display.drawFastVLine(x, y + 6, 10);
+        gb.display.drawFastVLine(x + 10, y + 1, 15);
+        break;
+    }
+    drawValue(x, y, card, true);
 }
 
 void UI::drawLeftArrow(byte x, byte y) {
@@ -322,47 +310,58 @@ void UI::drawRightArrow(byte x, byte y) {
     gb.display.drawPixel(x + 2, y + 2);
 }
 
-void UI::drawValue(byte x, byte y, Card value) {
+void UI::drawValue(byte x, byte y, Card value, bool with_bitmap) {
     switch (value) {
     case Jester:
         drawZero(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 5, spr_je);
         break;
-    case Princess:
+    case Lady:
         drawOne(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 6, spr_la);
         break;
     case Spy:
         drawTwo(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 7, spr_sp);
         break;
     case Assassin:
         drawThree(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 7, spr_as);
         break;
-    case Minister:
+    case Chancellor:
         drawFour(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 6, spr_ch);
         break;
     case Magician:
         drawFive(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 3, spr_ma);
         break;
     case General:
         drawSix(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 6, spr_ge);
         break;
     case Prince:
         drawSeven(x, y);
+        if (with_bitmap)
+            gb.display.drawBitmap(x + 2, y + 4, spr_pr);
         break;
     }
 }
 
 void UI::drawZero(byte x, byte y) {
-    gb.display.drawPixel(x + 1, y);
-    gb.display.drawFastVLine(x, y + 1, 4);
-    gb.display.drawFastVLine(x + 2, y + 1, 4);
-    gb.display.drawPixel(x + 1, y + 2);
+    gb.display.drawRect(x, y, 3, 5);
 }
 
 void UI::drawOne(byte x, byte y) {
-    gb.display.drawPixel(x + 1, y);
-    gb.display.drawFastVLine(x, y + 1, 4);
-    gb.display.drawFastVLine(x + 2, y + 1, 4);
-    gb.display.drawPixel(x + 1, y + 2);
+    gb.display.drawPixel(x, y + 1);
+    gb.display.drawFastVLine(x + 1, y, 5);
 }
 
 void UI::drawTwo(byte x, byte y) {
@@ -405,6 +404,12 @@ void UI::drawSeven(byte x, byte y) {
     drawSegmentA(x, y);
     drawSegmentB(x, y);
     drawSegmentC(x, y);
+}
+
+void UI::drawPlus(byte x, byte y) {
+    gb.display.drawPixel(x + 1, y);
+    gb.display.drawFastHLine(x, y + 1, 3);
+    gb.display.drawPixel(x + 1, y + 2);
 }
 
 void UI::drawCursor() {
@@ -567,6 +572,27 @@ Pile *UI::getActiveLocationPile() {
         return &gameState._played;
     }*/
     return nullptr;
+}
+
+void UI::getCoords(Location location, byte idx, byte &x, byte &y) {
+    switch (location) {
+    case hand0:
+        x = 13 * (idx % 4);
+        y = 13 + 18 * (idx / 4);
+        break;
+    case hand1:
+        x = 12 + idx * 5;
+        y = 0;
+        break;
+    case played0:
+        x = 55;
+        y = 22;
+        break;
+    case played1:
+        x = 55;
+        y = 2;
+        break;
+    }
 }
 
 byte UI::updatePosition(byte current, byte destination) {

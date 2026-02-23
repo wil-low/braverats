@@ -77,30 +77,17 @@ void loop() {
 }
 
 void handleSelectingButtons() {
-    /*
     // Handle buttons when user is using the arrow cursor to navigate.
     Location originalLocation = ui._activeLocation;
     if (gb.buttons.pressed(BTN_RIGHT)) {
-        if (ui._activeLocation == hand) {
-            if (ui._cardIndex + gameState._players[0]._hand.scrollOffset <
-                gameState._players[0]._hand._count - 1) {
-                if (ui._cardIndex <
-                    gameState._players[0]._hand.maxVisibleCards - 1)
-                    ++ui._cardIndex;
-                else
-                    ++gameState._players[0]._hand.scrollOffset;
-            }
-        }
+        if (ui._cardIndex < gameState._players[0]._hand._count - 1)
+            ++ui._cardIndex;
     }
     if (gb.buttons.pressed(BTN_LEFT)) {
-        if (ui._activeLocation == hand) {
-            if (ui._cardIndex > 0)
-                --ui._cardIndex;
-            else if (gameState._players[0]._hand.scrollOffset > 0)
-                --gameState._players[0]._hand.scrollOffset;
-        }
+        if (ui._cardIndex > 0)
+            --ui._cardIndex;
     }
-    if (gb.buttons.pressed(BTN_DOWN)) {
+    /*if (gb.buttons.pressed(BTN_DOWN)) {
         if (ui._activeLocation < played)
             ui._activeLocation = played;
         else if (ui._activeLocation = played)
@@ -111,7 +98,7 @@ void handleSelectingButtons() {
             ui._activeLocation = ui._activeLocation - 1;
     }
     if (gb.buttons.pressed(BTN_B)) {
-        /*if (gameState._deck._count != 0) {
+        if (gameState._deck._count != 0) {
             ui._cardAnimationCount = 0;
             ui.animateMove(&gameState._deck, 0, &gameState._players[1]._hand,
                            gameState._players[1]._hand._count);
