@@ -8,18 +8,19 @@
 void new_game(GameState *state) {
     for (uint8_t i = 0; i < PLAYER_COUNT; ++i) {
         Player *p = &state->_players[i];
+        p->_score = 0;
+        p->_effect = UnknownCard;
         p->_hand._count = 0;
         for (uint8_t n = 0; n < CardCount; ++n) {
-            p->_score = 0;
-            p->_hand._items[p->_hand._count++] = CardCount - 1 - n;
+            p->_hand._items[p->_hand._count++] = n;
 #ifdef CSV_OUTPUT
             p->_remaining[n] = 1;
 #endif
         }
-        p->_effect = UnknownCard;
     }
     state->_last_result = RR_NoResult;
     state->_round_count = 0;
+    state->_pending_cmd = CMD_NEW_ROUND;
 }
 
 GameState resolve_round(GameState *state, Card p0_card, Card p1_card) {
@@ -81,34 +82,35 @@ void move_cards(GameState *state, Card p0_card, Card p1_card,
 
     state->_players[0]._score = 0;
     state->_players[1]._score = 0;
-    state->_players[0]._unrealized_points = 0;
-    state->_players[1]._unrealized_points = 0;
-    if (result != RR_Player0_GameWon && result != RR_Player1_GameWon) {
+    if (result == RR_Player0_GameWon)
+        state->_players[0]._score = 100;
+    else if (result == RR_Player1_GameWon)
+        state->_players[1]._score = 100;
+    else {
+        state->_players[0]._unrealized_points = 0;
+        state->_players[1]._unrealized_points = 0;
         for (uint8_t i = 0; i < state->_round_count; ++i) {
             RoundResult *rr = &state->_rounds[i]._result;
             if (*rr == RR_Hold)
                 *rr = result;
+            state->_rounds[i]._points = 1;
             switch (*rr) {
             case RR_Player0:
                 if (state->_rounds[i]._cards[0] == Chancellor &&
-                    state->_rounds[i]._cards[1] != Magician)
+                    state->_rounds[i]._cards[1] != Magician) {
+                    state->_rounds[i]._points = 2;
                     state->_players[0]._score += 2;
-                else
+                } else
                     state->_players[0]._score++;
                 break;
             case RR_Player1:
                 if (state->_rounds[i]._cards[1] == Chancellor &&
-                    state->_rounds[i]._cards[0] != Magician)
+                    state->_rounds[i]._cards[0] != Magician) {
+                    state->_rounds[i]._points = 2;
                     state->_players[1]._score += 2;
-                else
+                } else
                     state->_players[1]._score++;
                 break;
-            case RR_Player0_GameWon:
-                state->_players[0]._score = UINT8_MAX;
-                return;
-            case RR_Player1_GameWon:
-                state->_players[1]._score = UINT8_MAX;
-                return;
             case RR_Hold:
                 state->_players[0]._unrealized_points +=
                     (state->_rounds[i]._cards[0] == Chancellor ? 2 : 1);
@@ -160,122 +162,112 @@ Card input_move(GameState *state, uint8_t player_idx, Card opponent_move) {
 */
 
 void process_command(GameState *state, UI *ui) {
-    /*
+
     state->_input_cmd = state->_pending_cmd;
     state->_pending_cmd = CMD_NONE;
     switch (state->_input_cmd) {
-    case CMD_PASS:
-        if (state->_players[state->_cur_player]._hand._count == 0 ||
-            (state->_valid_moves._flags & FLAG_MOUMOU)) {
-            state->_pending_cmd = CMD_ROUND_OVER;
-        } else {
-            state->_pending_cmd = CMD_NEXT_PLAYER;
-            if (state->_played._count && CardValue(state->_last_card) == Jack) {
-                state->_pending_cmd = ai_demand_suit(state);
-            }
-            state->_valid_moves._flags &= ~FLAG_PASS;
-            state->_valid_moves._flags &= ~FLAG_RESTRICT_VALUE;
+    case CMD_NEW_GAME: {
+        switch (ui->_versusMode) {
+        case Human_L1:
+            state->_players[0]._level = Human;
+            state->_players[1]._level = Level_1;
+            break;
+        case Human_L2:
+            state->_players[0]._level = Human;
+            state->_players[1]._level = Level_2;
+            break;
+        case Human_L3:
+            state->_players[0]._level = Human;
+            state->_players[1]._level = Level_3;
+            break;
+        case L2_L1:
+            state->_players[0]._level = Level_2;
+            state->_players[1]._level = Level_1;
+            break;
+        case L3_L2:
+            state->_players[0]._level = Level_3;
+            state->_players[1]._level = Level_2;
+            break;
         }
-        ui->startPass();
-        break;
-    case CMD_DRAW:
+        ui->_mode = MODE_PLAYER_MOVE;
+        new_game(state);
+    } break;
+    case CMD_NEW_ROUND: {
+        ui->playSoundA();
+        ui->_played_face_up[1] = false;
+        ui->_played_face_up[0] = state->_players[0]._level == Human;
+        Card p0_card = UnknownCard;
+        Card p1_card = UnknownCard;
+        if (state->_players[0]._effect == Spy) {
+            p1_card = input_move(state, 1, UnknownCard);
+            ui->_played_face_up[1] = true;
+            p0_card = input_move(state, 0, p1_card);
+        } else if (state->_players[1]._effect == Spy) {
+            p0_card = input_move(state, 0, UnknownCard);
+            ui->_played_face_up[0] = true;
+            if (p0_card != UnknownCard)
+                p1_card = input_move(state, 1, p0_card);
+        } else {
+            p0_card = input_move(state, 0, UnknownCard);
+            p1_card = input_move(state, 1, UnknownCard);
+        }
+
+        ui->_played_cards[0] = p0_card;
+        ui->_played_cards[1] = p1_card;
         state->_pending_cmd = CMD_SELECT_MOVE;
-        state->_valid_moves._flags &= ~FLAG_DRAW;
-        ui->startDraw();
-        break;
-    case CMD_NEXT_PLAYER:
-        state->_cur_player = (state->_cur_player + 1) % PLAYER_COUNT;
-        state->_pending_cmd = CMD_SELECT_MOVE;
-        state->_valid_moves._flags |= FLAG_DRAW;
-        break;
+    } break;
     case CMD_SELECT_MOVE:
-        find_valid_moves(state, state->_cur_player);
-        state->_pending_cmd = ai_move(state);
+        ui->_mode = MODE_PLAYER_MOVE; // temporary w/o ANIMATE
+        if (state->_players[1]._effect == Spy &&
+            ui->_played_cards[0] != UnknownCard)
+            ui->_played_cards[1] = input_move(state, 1, ui->_played_cards[0]);
+        if (ui->_played_cards[0] != UnknownCard &&
+            ui->_played_cards[1] != UnknownCard)
+            state->_pending_cmd = CMD_RESOLVE_ROUND;
         break;
-    case CMD_SELECT_SUIT:
-        break;
-    case CMD_ROUND_OVER:
-        state->_players[0]._hand.x = 4;
-        state->_players[0]._hand.y = 33;
-        state->_players[0]._hand.maxVisibleCards = 6;
-        state->_players[0]._hand.setFace(true);
-        state->_players[0]._hand_score = hand_score(state, 0);
-
-        state->_players[1]._hand.x = 4;
-        state->_players[1]._hand.y = 1;
-        state->_players[1]._hand.maxVisibleCards = 6;
-        state->_players[1]._hand.setFace(true);
-        state->_players[1]._hand_score = hand_score(state, 1);
-
-        if (state->_players[0]._hand_score < state->_players[1]._hand_score) {
+    case CMD_RESOLVE_ROUND: {
+        ui->_played_face_up[0] = ui->_played_face_up[1] = true;
+        *state =
+            resolve_round(state, ui->_played_cards[0], ui->_played_cards[1]);
+        move_cards(state, ui->_played_cards[0], ui->_played_cards[1],
+                   state->_last_result);
+        state->_pending_cmd = CMD_NEW_ROUND;
+        ui->_winner = check_winner(state);
+        switch (ui->_winner) {
+        case RR_Hold:
+        case RR_Player0_GameWon:
+        case RR_Player1_GameWon:
+            if (ui->_winner != RR_Hold)
+                state->_players[ui->_winner - RR_Player0_GameWon]
+                    ._victory_count++;
+            state->_id++;
+            state->_pending_cmd = CMD_GAME_OVER;
+            ui->playSoundA();
+            break;
+        default:
+            break;
+        }
+        ui->_pauseTimer = state->_players[0]._level == Human ? 32 : 8;
+        ui->_mode = MODE_PAUSE;
+    } break;
+    case CMD_GAME_OVER:
+        if (state->_players[0]._score < state->_players[1]._score) {
             ui->_versusWon[ui->_versusMode]++;
             ui->writeEeprom(false);
         }
-        ui->_mode = MODE_ROUND_OVER;
-        ui->_drawRoundOverTimer = ROUND_OVER_TIMER;
-        break;
-    case CMD_NEW_ROUND:
-        new_round(state, ui);
-        initial_deal(state, ui);
-        break;
-    case CMD_DEMAND_SPADES:
-    case CMD_DEMAND_HEARTS:
-    case CMD_DEMAND_DIAMOND:
-    case CMD_DEMAND_CLUBS:
-        state->_demanded =
-            static_cast<uint8_t>(state->_input_cmd) - CMD_DEMAND_SPADES;
-        state->_pending_cmd = CMD_NEXT_PLAYER;
+        ui->_played_cards[0] = ui->_played_cards[1] = UnknownCard;
+        ui->_mode = MODE_GAME_OVER;
+        ui->_drawRoundOverTimer = 32;
         break;
     default: {
-        Player *p = &state->_players[state->_cur_player];
-        Card p_card = p->_hand._items[state->_input_cmd];
-        ui->startPlayCard(state->_input_cmd);
-        // apply effects
-        state->_valid_moves._flags &= ~FLAG_OPPONENT_SKIPS;
-        if (CardValue(p_card) == Eight) {
-            state->_valid_moves._flags |= FLAG_OPPONENT_SKIPS;
-        }
-        if (CardValue(p_card) == Ace) {
-            state->_valid_moves._flags |= FLAG_OPPONENT_SKIPS;
-        }
-        if (CardSuit(p_card) == Clubs && CardValue(p_card) == King) {
-            state->_valid_moves._flags |= FLAG_OPPONENT_SKIPS;
-        }
-        // check moumou
-        if (CardValue(p_card) == CardValue(state->_last_card)) {
-            ++state->_moumou_counter;
-            if (state->_moumou_counter == SuitCount)
-                state->_valid_moves._flags |= FLAG_MOUMOU;
-        } else
-            state->_moumou_counter = 1;
-
-        if (CardValue(p_card) == Six ||
-            (state->_valid_moves._flags & FLAG_OPPONENT_SKIPS))
-            state->_valid_moves._flags |= FLAG_DRAW;
-        else
-            state->_valid_moves._flags &= ~FLAG_DRAW;
-        if (CardValue(p_card) != Six)
-            state->_valid_moves._flags |= FLAG_PASS;
-        else
-            state->_valid_moves._flags &= ~FLAG_PASS;
-
-        state->_last_card = p_card;
-
-        state->_demanded = Undefined;
-
-        if (!(state->_valid_moves._flags & FLAG_OPPONENT_SKIPS) &&
-            CardValue(state->_last_card) != Six)
-            state->_valid_moves._flags |= FLAG_RESTRICT_VALUE;
-        else
-            state->_valid_moves._flags &= ~FLAG_RESTRICT_VALUE;
-
-        if (CardValue(state->_last_card) != Six)
-            state->_valid_moves._flags |= FLAG_PASS;
-        else
-            state->_valid_moves._flags &= ~FLAG_PASS;
-
+        ui->_played_cards[0] = (Card)state->_input_cmd;
         state->_pending_cmd = CMD_SELECT_MOVE;
     } break;
     }
-    */
+}
+
+Card input_move(GameState *state, uint8_t player_idx, Card opponent_move) {
+    if (state->_players[player_idx]._level == Human)
+        return UnknownCard;
+    return ai_move(state, player_idx, opponent_move);
 }

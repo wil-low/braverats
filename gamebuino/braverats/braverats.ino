@@ -12,34 +12,20 @@ UI ui;
 void setup() {
     gb.begin();
 
+    if (RANDOM_SEED)
+        randomSeed(RANDOM_SEED);
+    else
+        gb.pickRandomSeed();
+
     GameState *state = &gameState;
-    /*
-        // Initialize positions of piles.
-        gameState._deck.x = 2;
-        gameState._deck.y = 1;
-        gameState._deck.maxVisibleCards = 1;
-        gameState._deck.faceUp = false;
-
-        gameState._table.x = 16;
-        gameState._table.y = 1;
-        gameState._table.maxVisibleCards = 4;
-        gameState._table.scrollToLast = true;
-
-        gameState._played.x = 2;
-        gameState._played.y = 17;
-        gameState._played.maxVisibleCards = 6;
-        gameState._played.scrollToLast = true;
-*/
-    gameState._players[0]._score = 0;
-    gameState._players[1]._score = 0;
-
     ui.showTitle();
 }
 
 void loop() {
     // Main loop.
     if (gb.update()) {
-        if (ui._mode != MODE_ANIMATE && gameState._pending_cmd != CMD_NONE) {
+        if (ui._mode != MODE_ANIMATE && ui._mode != MODE_PAUSE &&
+            gameState._pending_cmd != CMD_NONE) {
             process_command(&gameState, &ui);
         }
 
@@ -54,19 +40,25 @@ void loop() {
         case MODE_PLAYER_MOVE:
             handleSelectingButtons();
             break;
-        case MODE_ROUND_OVER:
-            handleRoundOver();
+        case MODE_GAME_OVER:
+            handleGameOver();
             break;
         }
 
         // Draw the board.
-        if (ui._mode == MODE_ROUND_OVER)
-            ui.drawRoundOver(false);
+        if (ui._mode == MODE_GAME_OVER)
+            ui.drawGameOver();
         else
             ui.drawBoard();
 
         // Draw other things based on the current state of the game.
         switch (ui._mode) {
+        case MODE_PAUSE:
+            if (ui._pauseTimer == 0)
+                ui._mode = MODE_PLAYER_MOVE;
+            else
+                ui._pauseTimer--;
+            break;
         case MODE_ANIMATE:
             ui.drawDealing();
             break;
@@ -107,41 +99,21 @@ void handleSelectingButtons() {
             ui._mode = MODE_ANIMATE;
             // playSoundA();
         }
-    } else if (gb.buttons.pressed(BTN_A)) {
-
-        switch (ui._activeLocation) {
-        case stock:
-            if (gameState._valid_moves._flags & FLAG_DRAW) {
-                if (gameState._deck._count != 0) {
-                    gameState._pending_cmd = CMD_DRAW;
-                }
-                }
-            }
-            break;
-        case hand: {
-            Pile &p = gameState._players[0]._hand;
-            if (p._count) {
-                uint8_t idx = ui._cardIndex + p.scrollOffset;
-                for (uint8_t i = 0; i < gameState._valid_moves._count; ++i) {
-                    if (idx == gameState._valid_moves._items[i]) {
-                        gameState._pending_cmd = idx;
-                        break;
-                    }
-                }
-            }
-        } break;
-        case played:
-            if (gameState._valid_moves._flags & FLAG_PASS)
-                gameState._pending_cmd = CMD_PASS;
-            break;
-        }
+}
+*/
+    else if (gb.buttons.pressed(BTN_A)) {
+        Pile &p = gameState._players[0]._hand;
+        gameState._pending_cmd = (Command)p._items[ui._cardIndex];
+        if (ui._cardIndex > 0 && ui._cardIndex == p._count - 1)
+            ui._cardIndex--;
     }
-    if (originalLocation != ui._activeLocation)
-        ui._cardIndex = 0;
-        */
+
+    // if (originalLocation != ui._activeLocation)
+    //     ui._cardIndex = 0;
 }
 
-void handleRoundOver() {
-    // if (gb.buttons.pressed(BTN_A))
-    //     update_score(&gameState, &ui);
+void handleGameOver() {
+    if (gb.buttons.pressed(BTN_A)) {
+        gameState._pending_cmd = CMD_NEW_GAME;
+    }
 }

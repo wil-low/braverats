@@ -27,22 +27,26 @@ typedef enum {
 typedef enum {
     Human_L1 = 0,
     Human_L2,
+    Human_L3,
     L2_L1,
+    L3_L2,
     VersusCount
 } VersusMode;
 
 typedef enum {
     MODE_PLAYER_MOVE = 0,
     MODE_ANIMATE,
-    MODE_ROUND_OVER
+    MODE_PAUSE,
+    MODE_GAME_OVER
 } GameMode;
 
 typedef enum {
     CMD_PLAY_CARD = 0,
-    CMD_NEXT_PLAYER = 100,
+    CMD_NEW_GAME = 100,
     CMD_NEW_ROUND = 101,
     CMD_SELECT_MOVE = 102,
-    CMD_ROUND_OVER = 103,
+    CMD_RESOLVE_ROUND = 103,
+    CMD_GAME_OVER = 104,
     CMD_NONE = 255
 } Command;
 
@@ -69,11 +73,13 @@ typedef struct {
     uint32_t _id;
     RoundResult _last_result;
     Command _pending_cmd;
+    Command _input_cmd;
 } GameState;
 
 class UI;
 
 void new_game(GameState *state);
+Card input_move(GameState *state, uint8_t player_idx, Card opponent_move);
 GameState resolve_round(GameState *state, Card p0_card, Card p1_card);
 void move_cards(GameState *state, Card p0_move, Card p1_move,
                 RoundResult result);

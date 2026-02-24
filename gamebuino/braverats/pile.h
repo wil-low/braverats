@@ -14,7 +14,8 @@ enum Card {
     General,
     Prince,
     CardCount,
-    UnknownCard = CardCount
+    UnknownCard = CardCount,
+    FaceDown
 };
 
 class Pile {

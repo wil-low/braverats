@@ -15,6 +15,12 @@ enum Location {
     hand1
 };
 
+enum DrawMode {
+    DM_NORMAL,
+    DM_SELECTED,
+    DM_FACE_DOWN
+};
+
 struct CardAnimation {
     Card card;
     byte x, y, destX, destY;
@@ -31,7 +37,7 @@ class UI {
     UI();
 
     // State of the game.
-    GameMode _mode = MODE_PLAYER_MOVE;
+    GameMode _mode = MODE_GAME_OVER;
 
     // how many cards must be animated in dealing mode
     byte _dealingCount;
@@ -47,12 +53,16 @@ class UI {
     VersusMode _versusMode;
 
     Card _played_cards[2];
+    bool _played_face_up[2];
 
     // Used to deal at the start of the game.
     CardAnimation _cardAnimations[Pile::_maxCards];
     byte _cardAnimationCount = 0;
 
-    int _drawRoundOverTimer;
+    RoundResult _winner;
+
+    uint8_t _drawRoundOverTimer;
+    uint8_t _pauseTimer;
 
     uint16_t _versusCount[VersusMode::VersusCount];
     uint16_t _versusWon[VersusMode::VersusCount];
@@ -66,8 +76,8 @@ class UI {
 
     void drawBoard();
     void drawSuitSelector();
-    void drawRoundOver(bool is_moumou);
-    void drawCard(byte x, byte y, Card card, uint8_t border);
+    void drawGameOver();
+    void drawCard(byte x, byte y, Card card, DrawMode mode);
     void drawValue(byte x, byte y, Card value, bool with_bitmap);
     void drawLeftArrow(byte x, byte y);
     void drawRightArrow(byte x, byte y);
