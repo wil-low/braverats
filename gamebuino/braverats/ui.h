@@ -49,6 +49,9 @@ class UI {
     // Position of the cursor for animation.
     byte _cursorX, _cursorY;
 
+    // Help page
+    uint8_t _helpPage;
+
     // AI level
     VersusMode _versusMode;
 
@@ -97,6 +100,8 @@ class UI {
 
     void readEeprom();
     void writeEeprom(bool saveGame);
+
+    void drawHelpPage();
 
   private:
     void getCursorDestination(byte &x, byte &y, bool &flipped);

@@ -12,33 +12,11 @@
 extern Gamebuino gb;
 extern GameState gameState;
 
-const char name_je[] PROGMEM = "Jester";
-const char name_la[] PROGMEM = "Lady";
-const char name_sp[] PROGMEM = "Spy";
-const char name_as[] PROGMEM = "Assassin";
-const char name_ch[] PROGMEM = "Chancellor";
-const char name_ma[] PROGMEM = "Magician";
-const char name_ge[] PROGMEM = "General";
-const char name_pr[] PROGMEM = "Prince";
+const char LETTERS[] PROGMEM = "JLSACMGP";
 
-const char eff_je[] PROGMEM = "This round’s is nullified; and put on hold";
-const char eff_la[] PROGMEM =
-    "If the opponent played the Prince, you win the game";
-const char eff_sp[] PROGMEM =
-    "Next round, your opponent reveals his card before you choose yours";
-const char eff_as[] PROGMEM = "The lowest strength wins";
-const char eff_ch[] PROGMEM =
-    "If you win with this card, it counts as 2 victories";
-const char eff_ma[] PROGMEM =
-    "Nullifies the special power of the opponent’s card";
-const char eff_ge[] PROGMEM = "Your card next turn gets +2 strength";
-const char eff_pr[] PROGMEM = "You win the round";
-
-const char *NAMES[] = {name_je, name_la, name_sp, name_as,
-                       name_ch, name_ma, name_ge, name_pr};
-
-const char *EFFECTS[] = {eff_je, eff_la, eff_sp, eff_as,
-                         eff_ch, eff_ma, eff_ge, eff_pr};
+// gb.display.print(F("\x1\x2\x3\x4\x5\x6\x7\x8\x9\xa\xb\xc\xd\xe\xf"
+//                    "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b"
+//                    "\x1c\x1d\x1e\x1f\x20"));
 
 void UI::drawBoard() {
     byte x;
@@ -108,6 +86,10 @@ void UI::drawBoard() {
         UI::getCoords(hand1, i, x, y);
         drawValue(x, y, p->_hand._items[i], false);
     }
+
+    gb.display.cursorX = 64;
+    gb.display.cursorY = 42;
+    gb.display.print(F("\26help"));
 }
 
 void UI::drawGameOver() {
@@ -144,8 +126,8 @@ void UI::drawGameOver() {
 
     for (uint8_t i = 0; i < gameState._round_count; ++i) {
         Round *r = &gameState._rounds[i];
-        gb.display.drawChar(x, 24, pgm_read_byte(NAMES[r->_cards[1]]), 1);
-        gb.display.drawChar(x, 32, pgm_read_byte(NAMES[r->_cards[0]]), 1);
+        gb.display.drawChar(x, 24, pgm_read_byte(&LETTERS[r->_cards[1]]), 1);
+        gb.display.drawChar(x, 32, pgm_read_byte(&LETTERS[r->_cards[0]]), 1);
         uint8_t y =
             (r->_result == RR_Player0 || r->_result == RR_Player0_GameWon) ? 32
                                                                            : 24;
@@ -223,6 +205,7 @@ UI::UI() {
     memset(_versusCount, 0, sizeof(_versusCount));
     memset(_versusWon, 0, sizeof(_versusWon));
     _cardIndex = 0;
+    _helpPage = 0;
     _played_cards[0] = _played_cards[1] = UnknownCard;
 }
 
@@ -753,4 +736,81 @@ void UI::writeEeprom(bool saveGame) {
         address += sizeof(_versusWon[i]);
     }
         */
+}
+
+void UI::drawHelpPage() {
+    drawCard(1, 0, _helpPage, DM_NORMAL);
+
+    gb.display.textWrap = true;
+    gb.display.cursorY = 0;
+    switch (_helpPage) {
+    case Jester:
+        gb.display.cursorX = 14 + (84 - 16 - 6 * 4) / 2;
+        gb.display.print(F("Jester"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(F("This round is\nnullified and put on\nhold. Wins "
+                           "over all\npowers except the\nMagician's"));
+        break;
+    case Lady:
+        gb.display.cursorX = 14 + (84 - 16 - 4 * 4) / 2;
+        gb.display.print(F("Lady"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(
+            F("If the opponent\nplayed the Prince,\nyou win the game\n"
+              "immediately, despite of number of points"));
+        break;
+    case Spy:
+        gb.display.cursorX = 14 + (84 - 16 - 3 * 4) / 2;
+        gb.display.print(F("Spy"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(
+            F("Next round, your\nopponent reveals his\ncard "
+              "before you\nchoose yours. 2 Spiesnullify each other"));
+        break;
+    case Assassin:
+        gb.display.cursorX = 14 + (84 - 16 - 8 * 4) / 2;
+        gb.display.print(F("Assassin"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(F("The lowest\n    strength wins"));
+        break;
+    case Chancellor:
+        gb.display.cursorX = 14 + (84 - 16 - 10 * 4) / 2;
+        gb.display.print(F("Chancellor"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(F("If you win with\nthis card, it counts\nas 2 "
+                           "points, even if the round is on hold"));
+        break;
+    case Magician:
+        gb.display.cursorX = 14 + (84 - 16 - 8 * 4) / 2;
+        gb.display.print(F("Magician"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(F("Nullifies the\nspecial power of the\nopponent's "
+                           "card: the highest strength winsthe round"));
+        break;
+    case General:
+        gb.display.cursorX = 14 + (84 - 16 - 7 * 4) / 2;
+        gb.display.print(F("General"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(F("Your card next\nturn gets +2 strength"));
+        break;
+    case Prince:
+        gb.display.cursorX = 14 + (84 - 16 - 6 * 4) / 2;
+        gb.display.print(F("Prince"));
+        gb.display.cursorX = 16;
+        gb.display.cursorY = 14;
+        gb.display.print(F("You win the round(even against the\nAssassin), yet "
+                           "Jesterstill puts the round on hold"));
+        break;
+    }
+    if (_helpPage > 0)
+        gb.display.drawChar(20, 0, '\x11', 1);
+    if (_helpPage < Prince)
+        gb.display.drawChar(76, 0, '\x10', 1);
 }

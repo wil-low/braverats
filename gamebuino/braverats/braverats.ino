@@ -39,6 +39,9 @@ void loop() {
         case MODE_PLAYER_MOVE:
             handleSelectingButtons();
             break;
+        case MODE_HELP:
+            handleHelp();
+            break;
         case MODE_GAME_OVER:
             handleGameOver();
             break;
@@ -47,6 +50,8 @@ void loop() {
         // Draw the board.
         if (ui._mode == MODE_GAME_OVER)
             ui.drawGameOver();
+        else if (ui._mode == MODE_HELP)
+            ui.drawHelpPage();
         else
             ui.drawBoard();
 
@@ -87,20 +92,14 @@ void handleSelectingButtons() {
     if (gb.buttons.pressed(BTN_UP)) {
         if (ui._activeLocation > stock)
             ui._activeLocation = ui._activeLocation - 1;
-    }
+    }*/
     if (gb.buttons.pressed(BTN_B)) {
-        if (gameState._deck._count != 0) {
-            ui._cardAnimationCount = 0;
-            ui.animateMove(&gameState._deck, 0, &gameState._players[1]._hand,
-                           gameState._players[1]._hand._count);
-            ui._dealingCount = ui._cardAnimationCount;
-            ui._cardAnimationCount = 0;
-            ui._mode = MODE_ANIMATE;
-            // playSoundA();
-        }
-}
-*/
-    else if (gb.buttons.pressed(BTN_A)) {
+        if (gameState._players[0]._level == Human)
+            ui._helpPage = gameState._players[0]._hand._items[ui._cardIndex];
+        else
+            ui._helpPage = 0;
+        ui._mode = MODE_HELP;
+    } else if (gb.buttons.pressed(BTN_A)) {
         Pile &p = gameState._players[0]._hand;
         gameState._pending_cmd = (Command)p._items[ui._cardIndex];
         if (ui._cardIndex > 0 && ui._cardIndex == p._count - 1)
@@ -114,5 +113,19 @@ void handleSelectingButtons() {
 void handleGameOver() {
     if (gb.buttons.pressed(BTN_A)) {
         gameState._pending_cmd = CMD_NEW_GAME;
+    }
+}
+
+void handleHelp() {
+    if (gb.buttons.pressed(BTN_LEFT)) {
+        if (ui._helpPage > 0)
+            ui._helpPage--;
+    } else if (gb.buttons.pressed(BTN_RIGHT)) {
+        if (ui._helpPage < Prince)
+            ui._helpPage++;
+    } else if (gb.buttons.pressed(BTN_A)) {
+        ui._mode = MODE_PLAYER_MOVE;
+    } else if (gb.buttons.pressed(BTN_B)) {
+        ui._mode = MODE_PLAYER_MOVE;
     }
 }

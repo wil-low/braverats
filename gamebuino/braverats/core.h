@@ -37,6 +37,7 @@ typedef enum {
     MODE_PLAYER_MOVE = 0,
     MODE_ANIMATE,
     MODE_PAUSE,
+    MODE_HELP,
     MODE_GAME_OVER
 } GameMode;
 
