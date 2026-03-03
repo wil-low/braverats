@@ -74,11 +74,11 @@ void UI::drawBoard() {
              _played_face_up[0] ? DM_NORMAL : DM_FACE_DOWN);
 
     // Human hand
+    bool cursorEnabled = p->_level == Human && _mode != MODE_PAUSE;
     for (uint8_t i = 0; i < p->_hand._count; ++i) {
         UI::getCoords(hand0, p->_hand._items[i], x, y);
         drawCard(x, y, p->_hand._items[i],
-                 (p->_level == Human && i == _cardIndex) ? DM_SELECTED
-                                                         : DM_NORMAL);
+                 (cursorEnabled && i == _cardIndex) ? DM_SELECTED : DM_NORMAL);
     }
 
     // Bot hand
@@ -187,12 +187,10 @@ void UI::drawDealing() {
 
 const char option0[] PROGMEM = "You vs L1";
 const char option1[] PROGMEM = "You vs L2";
-const char option2[] PROGMEM = "You vs L3";
-const char option3[] PROGMEM = "L2  vs L1";
-const char option4[] PROGMEM = "L3  vs L2";
+const char option2[] PROGMEM = "L2  vs L1";
 const char statisticsOption[] PROGMEM = "Game statistics";
 const char *const newGameMenu[] PROGMEM = {option0, option1, option2,
-                                           option3, option4, statisticsOption};
+                                           statisticsOption};
 
 const char quitOption[] PROGMEM = "Quit game";
 const char resumeOption[] PROGMEM = "Resume game";
@@ -218,7 +216,7 @@ start:
 
     char menuOption;
 askAgain:
-    menuOption = gb.menu(newGameMenu, 5);
+    menuOption = gb.menu(newGameMenu, 4);
     switch (menuOption) {
     case -1:
         goto start;

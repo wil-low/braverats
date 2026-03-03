@@ -21,15 +21,12 @@ typedef enum {
     Human = 0,
     Level_1,
     Level_2,
-    Level_3,
 } AILevel;
 
 typedef enum {
     Human_L1 = 0,
     Human_L2,
-    Human_L3,
     L2_L1,
-    L3_L2,
     VersusCount
 } VersusMode;
 

@@ -176,17 +176,9 @@ void process_command(GameState *state, UI *ui) {
             state->_players[0]._level = Human;
             state->_players[1]._level = Level_2;
             break;
-        case Human_L3:
-            state->_players[0]._level = Human;
-            state->_players[1]._level = Level_3;
-            break;
         case L2_L1:
             state->_players[0]._level = Level_2;
             state->_players[1]._level = Level_1;
-            break;
-        case L3_L2:
-            state->_players[0]._level = Level_3;
-            state->_players[1]._level = Level_2;
             break;
         }
         ui->_mode = MODE_PLAYER_MOVE;
@@ -251,11 +243,12 @@ void process_command(GameState *state, UI *ui) {
         ui->_mode = MODE_PAUSE;
     } break;
     case CMD_GAME_OVER:
-        if (state->_players[0]._score < state->_players[1]._score) {
+        if (state->_players[0]._score > state->_players[1]._score) {
             ui->_versusWon[ui->_versusMode]++;
             ui->writeEeprom(false);
         }
         ui->_played_cards[0] = ui->_played_cards[1] = UnknownCard;
+        ui->_versusCount[ui->_versusMode]++;
         ui->_mode = MODE_GAME_OVER;
         ui->_drawRoundOverTimer = 32;
         break;
