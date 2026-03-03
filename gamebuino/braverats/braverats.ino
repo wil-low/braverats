@@ -11,14 +11,13 @@ UI ui;
 
 void setup() {
     gb.begin();
-
-    if (RANDOM_SEED)
-        randomSeed(RANDOM_SEED);
-    else
-        gb.pickRandomSeed();
-
     GameState *state = &gameState;
     ui.showTitle();
+
+    if (RANDOM_SEED)
+        srand(RANDOM_SEED);
+    else
+        srand(gb.frameCount);
 }
 
 void loop() {
