@@ -75,15 +75,16 @@ void UI::drawBoard() {
 
     // Human hand
     for (uint8_t i = 0; i < p->_hand._count; ++i) {
-        UI::getCoords(hand0, i, x, y);
+        UI::getCoords(hand0, p->_hand._items[i], x, y);
         drawCard(x, y, p->_hand._items[i],
-                 i == _cardIndex ? DM_SELECTED : DM_NORMAL);
+                 (p->_level == Human && i == _cardIndex) ? DM_SELECTED
+                                                         : DM_NORMAL);
     }
 
     // Bot hand
     p = &gameState._players[1];
     for (uint8_t i = 0; i < p->_hand._count; ++i) {
-        UI::getCoords(hand1, i, x, y);
+        UI::getCoords(hand1, p->_hand._items[i], x, y);
         drawValue(x, y, p->_hand._items[i], false);
     }
 
