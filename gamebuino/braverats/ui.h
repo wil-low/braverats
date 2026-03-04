@@ -37,7 +37,7 @@ class UI {
     UI();
 
     // State of the game.
-    GameMode _mode = MODE_GAME_OVER;
+    GameMode _mode;
 
     // how many cards must be animated in dealing mode
     byte _dealingCount;

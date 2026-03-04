@@ -88,9 +88,9 @@ void UI::drawBoard() {
         drawValue(x, y, p->_hand._items[i], false);
     }
 
-    gb.display.cursorX = 64;
+    gb.display.cursorX = 76;
     gb.display.cursorY = 42;
-    gb.display.print(F("\26help"));
+    gb.display.print(F("\26?"));
 }
 
 void UI::drawGameOver() {
@@ -129,21 +129,20 @@ void UI::drawGameOver() {
         Round *r = &gameState._rounds[i];
         gb.display.drawChar(x, 24, pgm_read_byte(&LETTERS[r->_cards[1]]), 1);
         gb.display.drawChar(x, 32, pgm_read_byte(&LETTERS[r->_cards[0]]), 1);
-        uint8_t y =
-            (r->_result == RR_Player0 || r->_result == RR_Player0_GameWon) ? 32
-                                                                           : 24;
-        if (r->_result == RR_Player0_GameWon ||
-            r->_result == RR_Player1_GameWon) {
-            gb.display.drawFastVLine(x + 5, y, 3);
-            gb.display.drawPixel(x + 5, y + 4);
-        } else if (r->_points == 2) {
-            gb.display.drawFastVLine(x + 5, y, 5);
-            gb.display.drawPixel(x + 4, y + 1);
-            gb.display.drawPixel(x + 6, y + 1);
-            gb.display.drawPixel(x + 4, y + 3);
-            gb.display.drawPixel(x + 6, y + 3);
-        } else {
-            drawPlus(x + 4, y + 1);
+        if (r->_result != RR_Hold) {
+            uint8_t y =
+                (r->_result == RR_Player0 || r->_result == RR_Player0_GameWon)
+                    ? 32
+                    : 24;
+            if (r->_result == RR_Player0_GameWon ||
+                r->_result == RR_Player1_GameWon) {
+                gb.display.drawFastVLine(x + 5, y, 3); // !
+                gb.display.drawPixel(x + 5, y + 4);
+            } else if (r->_points == 2) {
+                gb.display.drawChar(x + 4, y, '\x12', 1); // ++
+            } else {
+                drawPlus(x + 4, y + 1); // +
+            }
         }
         x += 9;
     }
@@ -206,6 +205,7 @@ UI::UI() {
     _cardIndex = 0;
     _helpPage = 0;
     _played_cards[0] = _played_cards[1] = UnknownCard;
+    _mode = MODE_GAME_OVER;
 }
 
 void UI::showTitle() {
@@ -213,6 +213,9 @@ start:
     gb.display.persistence = true;
     gb.titleScreen(F(""), title);
     gb.battery.show = false;
+    _mode = MODE_GAME_OVER;
+    gameState._players[0]._victory_count = 0;
+    gameState._players[1]._victory_count = 0;
 
     char menuOption;
 askAgain:
@@ -758,7 +761,7 @@ void UI::drawHelpPage() {
         gb.display.cursorY = 14;
         gb.display.print(
             F("If the opponent\nplayed the Prince,\nyou win the game\n"
-              "immediately, despite of number of points"));
+              "immediately, despite number of points"));
         break;
     case Spy:
         gb.display.cursorX = 14 + (84 - 16 - 3 * 4) / 2;
