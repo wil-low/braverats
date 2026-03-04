@@ -78,36 +78,20 @@ void handleSelectingButtons() {
     if (gb.buttons.pressed(BTN_RIGHT)) {
         if (ui._cardIndex < gameState._players[0]._hand._count - 1)
             ++ui._cardIndex;
-    }
-    if (gb.buttons.pressed(BTN_LEFT)) {
+    } else if (gb.buttons.pressed(BTN_LEFT)) {
         if (ui._cardIndex > 0)
             --ui._cardIndex;
-    }
-    /*if (gb.buttons.pressed(BTN_DOWN)) {
-        if (ui._activeLocation < played)
-            ui._activeLocation = played;
-        else if (ui._activeLocation = played)
-            ui._activeLocation = hand;
-    }
-    if (gb.buttons.pressed(BTN_UP)) {
-        if (ui._activeLocation > stock)
-            ui._activeLocation = ui._activeLocation - 1;
-    }*/
-    if (gb.buttons.pressed(BTN_B)) {
-        if (gameState._players[0]._level == Human)
-            ui._helpPage = gameState._players[0]._hand._items[ui._cardIndex];
-        else
-            ui._helpPage = 0;
-        ui._mode = MODE_HELP;
     } else if (gb.buttons.pressed(BTN_A)) {
         Pile &p = gameState._players[0]._hand;
         gameState._pending_cmd = (Command)p._items[ui._cardIndex];
         if (ui._cardIndex > 0 && ui._cardIndex == p._count - 1)
             ui._cardIndex--;
+    } else if (gb.buttons.pressed(BTN_B)) {
+        if (gameState._players[0]._level == Human) {
+            ui._helpPage = gameState._players[0]._hand._items[ui._cardIndex];
+            ui._mode = MODE_HELP;
+        }
     }
-
-    // if (originalLocation != ui._activeLocation)
-    //     ui._cardIndex = 0;
 }
 
 void handleGameOver() {

@@ -88,9 +88,11 @@ void UI::drawBoard() {
         drawValue(x, y, p->_hand._items[i], false);
     }
 
-    gb.display.cursorX = 76;
-    gb.display.cursorY = 42;
-    gb.display.print(F("\26?"));
+    if (gameState._players[0]._level == Human) {
+        gb.display.cursorX = 76;
+        gb.display.cursorY = 42;
+        gb.display.print(F("\26?"));
+    }
 }
 
 void UI::drawGameOver() {
@@ -202,10 +204,6 @@ bool continueGame;
 UI::UI() {
     memset(_versusCount, 0, sizeof(_versusCount));
     memset(_versusWon, 0, sizeof(_versusWon));
-    _cardIndex = 0;
-    _helpPage = 0;
-    _played_cards[0] = _played_cards[1] = UnknownCard;
-    _mode = MODE_GAME_OVER;
 }
 
 void UI::showTitle() {
@@ -213,6 +211,9 @@ start:
     gb.display.persistence = true;
     gb.titleScreen(F(""), title);
     gb.battery.show = false;
+    _cardIndex = 0;
+    _helpPage = 0;
+    _played_cards[0] = _played_cards[1] = UnknownCard;
     _mode = MODE_GAME_OVER;
     gameState._players[0]._victory_count = 0;
     gameState._players[1]._victory_count = 0;
