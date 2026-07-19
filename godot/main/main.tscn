@@ -1,6 +1,5 @@
 [gd_scene format=3 uid="uid://c5r2e1aj3mjeo"]
 
-[ext_resource type="PackedScene" uid="uid://c1q7doxejnam" path="res://player/player.tscn" id="1_53q0u"]
 [ext_resource type="Script" uid="uid://bxidm2wlh52rf" path="res://main/main.gd" id="1_xwkvk"]
 [ext_resource type="PackedScene" uid="uid://cex2qhx27kx6p" path="res://deck/deck.tscn" id="2_pjrb6"]
 [ext_resource type="Texture2D" uid="uid://cfc3ay2prbl6f" path="res://card/characters.png" id="4_4dugh"]
@@ -12,12 +11,11 @@ script = ExtResource("1_xwkvk")
 metadata/_edit_horizontal_guides_ = [24.0, 48.0]
 metadata/_edit_vertical_guides_ = [84.0, 42.0]
 
-[node name="Player0" parent="." unique_id=1231112012 instance=ExtResource("1_53q0u")]
-position = Vector2(0, 13)
+[node name="PlayerHand1" parent="." unique_id=89891141 instance=ExtResource("2_pjrb6")]
+position = Vector2(30, -16)
 
-[node name="Player1" parent="." unique_id=1290894075 instance=ExtResource("1_53q0u")]
-position = Vector2(50, -21)
-idx = 1
+[node name="PlayerHand0" parent="." unique_id=885054453 instance=ExtResource("2_pjrb6")]
+position = Vector2(0, 21)
 
 [node name="DiscardMarker" type="Marker2D" parent="." unique_id=1639788791]
 position = Vector2(94, 19)
