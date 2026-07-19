@@ -1,28 +1,27 @@
-class_name Card extends Area2D
+class_name Card
+extends Area2D
 
-enum Rank {
-	Ace = 0,
-	Six = 1,
-	Seven,
-	Eight,
-	Nine,
-	Ten,
-	Jack,
-	Queen,
-	King,
-	Unknown
+## Braverats card types. Frame index = power value.
+enum Power {
+	Jester = 0,
+	Lady = 1,
+	Spy = 2,
+	Assassin = 3,
+	Counsellor = 4,
+	Magician = 5,
+	General = 6,
+	Prince = 7,
 }
 
-const RANK_NAMES := [
-	"A",
-	"6",
-	"7",
-	"8",
-	"9",
-	"T",
-	"J",
-	"Q",
-	"K"
+const POWER_NAMES := [
+	"Jester",
+	"Lady",
+	"Spy",
+	"Assassin",
+	"Counsellor",
+	"Magician",
+	"General",
+	"Prince",
 ]
 
 @onready var _sprite: Sprite2D = $Sprite
@@ -31,11 +30,11 @@ const RANK_NAMES := [
 static var b_font: LabelSettings
 static var w_font: LabelSettings
 
-var rank: Card.Rank:
+var _power: Power = Power.Jester:
 	get:
-		return rank
+		return _power
 	set(value):
-		rank = value
+		_power = value
 		_update_display()
 
 var faceup: bool = true:
@@ -45,25 +44,32 @@ var faceup: bool = true:
 		faceup = value
 		_update_display()
 
+## Power value (0-7). Maps directly to characters.png frame index.
+var power: Power:
+	get:
+		return _power
+	set(value):
+		_power = value
+		_update_display()
+
+## Display name of this card.
+var power_name: String:
+	get:
+		return POWER_NAMES[_power] if _power < POWER_NAMES.size() else "??"
+
 func _update_display() -> void:
 	_sprite.frame = 0 if faceup else 1
 	if faceup:
-		_value_label.text = RANK_NAMES[rank] if rank < RANK_NAMES.size() else "?"
+		_value_label.text = POWER_NAMES[_power] if _power < POWER_NAMES.size() else "?"
 	else:
 		_value_label.text = ""
 
-func get_rank_char() -> String:
-	if rank == Card.Rank.Unknown:
-		return "?"
-	return RANK_NAMES[rank]
+func get_power_name() -> String:
+	return POWER_NAMES[_power] if _power < POWER_NAMES.size() else "??"
 
 func _ready() -> void:
 	faceup = true
-	rank = Card.Rank.Unknown
+	_power = Power.Jester
 
 func set_selected(value: bool) -> void:
 	_sprite.modulate = Color.DIM_GRAY if value else Color.WHITE
-	_value_label.label_settings = w_font if value else b_font
-	var parent := get_parent()
-	if parent is Deck:
-		parent.card_selected(get_index(), value)
