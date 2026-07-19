@@ -32,3 +32,10 @@ offset_bottom = 6.0
 text = "1"
 label_settings = ExtResource("3_ply2h")
 horizontal_alignment = 2
+
+[node name="Facedown" type="Sprite2D" parent="." unique_id=263622084]
+visible = false
+texture = ExtResource("2_ply2h")
+offset = Vector2(5.5, 8.5)
+hframes = 2
+frame = 1
