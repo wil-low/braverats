@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://d0q3mfx7nmlf5"]
+
+[ext_resource type="Texture2D" uid="uid://cyf0gu38yf1di" path="res://card/simple.png" id="2_ply2h"]
+[ext_resource type="Script" uid="uid://bo6btsjdff0lu" path="res://card/card.gd" id="2_trrkg"]
+[ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="3_ply2h"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trrkg"]
+size = Vector2(6, 9)
+
+[node name="Card" type="Area2D" unique_id=1111454611]
+script = ExtResource("2_trrkg")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1942266798]
+position = Vector2(3.5, 4.5)
+shape = SubResource("RectangleShape2D_trrkg")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=1078115282]
+texture = ExtResource("2_ply2h")
+offset = Vector2(3.5, 4.5)
+hframes = 4
+frame = 1
+
+[node name="Value" type="Label" parent="." unique_id=532538880]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 6.0
+offset_bottom = 8.0
+label_settings = ExtResource("3_ply2h")
+horizontal_alignment = 2
