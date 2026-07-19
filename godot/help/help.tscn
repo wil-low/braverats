@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://b8o5ucmniyq87"]
+
+[ext_resource type="Script" uid="uid://c84y683bxef4o" path="res://help/help.gd" id="1_1sn8r"]
+[ext_resource type="PackedScene" uid="uid://dt80isxqw77q5" path="res://help/card_help_page.tscn" id="1_kcg8g"]
+[ext_resource type="PackedScene" uid="uid://bupgluwgnp7vr" path="res://level_selector/digit_button.tscn" id="2_b1g7n"]
+
+[node name="Help" type="Node2D" unique_id=2023718030]
+script = ExtResource("1_1sn8r")
+metadata/_edit_vertical_guides_ = [84.0]
+metadata/_edit_horizontal_guides_ = [48.0]
+
+[node name="LeftButton" parent="." unique_id=1959356917 instance=ExtResource("2_b1g7n")]
+offset_left = 15.0
+offset_right = 24.0
+frame = 12
+
+[node name="RightButton" parent="." unique_id=116292303 instance=ExtResource("2_b1g7n")]
+offset_left = 75.0
+offset_right = 84.0
+frame = 13
+
+[node name="BackButton" type="TextureButton" parent="." unique_id=2097406130]
+offset_top = 12.0
+offset_right = 84.0
+offset_bottom = 48.0
+
+[node name="Pages" type="Node2D" parent="." unique_id=187508409]
+
+[node name="Guard" parent="Pages" unique_id=287543303 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 0
+card_name = "Guard"
+card_description = "   Choose another player and name a card except Guard. If they have that card, they are out of the round."
+
+[node name="Priest" parent="Pages" unique_id=528050856 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 1
+card_name = "Priest"
+card_description = "   Choose another player and secretly look at their hand (without revealing it to anyone else)."
+
+[node name="Baron" parent="Pages" unique_id=323951099 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 2
+card_name = "Baron"
+card_description = "   Choose another player and compare your hands. Owner of the lower-value card is out of the round."
+
+[node name="Handmaid" parent="Pages" unique_id=961613203 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 3
+card_name = "Handmaid"
+card_description = "   Until the start of your next turn, other players cannot choose you for their card effects."
+
+[node name="Prince" parent="Pages" unique_id=1212964394 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 4
+card_name = "Prince"
+card_description = "  Choose any player. That player discards their hand (without resolving its effect) and draws a new hand."
+
+[node name="King" parent="Pages" unique_id=2146308990 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 5
+card_name = "King"
+card_description = "   Choose another player and trade hands with that player."
+
+[node name="Countess" parent="Pages" unique_id=297008219 instance=ExtResource("1_kcg8g")]
+visible = false
+card_type = 6
+card_name = "Countess"
+card_description = "   This card has no effect. You must play Countess if you have King or Prince in your hand."
+
+[node name="Princess" parent="Pages" unique_id=240639461 instance=ExtResource("1_kcg8g")]
+card_type = 7
+card_name = "Princess"
+card_description = "   If you either play or discard the Princess for any reason, you are immediately out of the round."
+
+[connection signal="pressed" from="LeftButton" to="." method="_on_left_button_pressed"]
+[connection signal="pressed" from="RightButton" to="." method="_on_right_button_pressed"]
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]
