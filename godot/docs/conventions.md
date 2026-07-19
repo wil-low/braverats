@@ -21,15 +21,18 @@
 - **`await Animator.flip/move_card/delay`** for all timed sequences
 - **Never** use `yield` or `await get_tree().create_timer` directly
 
-## Braverats Card Reference (in porting)
+## Braverats Card Reference (Sprite Frames)
 
-| Power | Name | characters.png frame | Effect |
+Card character sprites use `characters.png` where frame index = power value (0–7).
+See `docs/rules.md` for card effect descriptions.
+
+| Power | Name | Frame | Notes |
 |---|---|---|---|
-| 0 | Jester | 0 | Round nullified → on hold. Overrides all except Magician. |
-| 1 | Lady | 1 | If opponent played Prince, instant game win. |
-| 2 | Spy | 2 | Next round, opponent reveals first. Both Spies = both see opponent. |
-| 3 | Assassin | 3 | Lowest strength wins (inverts comparison). After other effects. |
-| 4 | Counsellor | 4 | Wins 2 points if round won. Cancels if both play it. |
-| 5 | Magician | 5 | Nullifies opponent's power. Does not affect General's +2. |
-| 6 | General | 6 | Next card gets +2 strength. Cannot be nullified by subsequent Magician. |
-| 7 | Prince | 7 | Wins round regardless of strength. Loses to Lady, loses to Assassin. |
+| 0 | Jester | 0 | — |
+| 1 | Lady | 1 | — |
+| 2 | Spy | 2 | — |
+| 3 | Assassin | 3 | — |
+| 4 | Chancellor | 4 | — |
+| 5 | Magician | 5 | — |
+| 6 | General | 6 | — |
+| 7 | Prince | 7 | — |

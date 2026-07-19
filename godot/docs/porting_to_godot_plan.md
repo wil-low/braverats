@@ -15,8 +15,8 @@
 | **Original platform** | Gamebuino (84×48 monochrome LCD, D-pad + A/B/C buttons, Arduino) |
 | **Godot viewport** | 672×384 at 8× scale (84×48 logical) — matches existing Cheaters project |
 | **Players** | Player 0: Human or AI (L1/L2). Player 1: always AI (L1/L2). Single-player vs AI only. |
-| **Cards** | 8 cards: Jester, Lady, Spy, Assassin, Counsellor, Magician, General, Prince |
-| **Special mechanics** | Spy (see opponent's card next round), Magician (nullify effects), General (+2 strength next turn), Prince (instant win vs Lady), Assassin (lowest wins), Counsellor (2 pts on win), Jester (hold/nullify), Lady (instant win vs Prince) |
+| **Cards** | 8 cards: Jester, Lady, Spy, Assassin, Chancellor, Magician, General, Prince |
+| **Special mechanics** | Spy (see opponent's card next round), Magician (nullify effects), General (+2 strength next turn), Prince (instant win vs Lady), Assassin (lowest wins), Chancellor (2 pts on win), Jester (hold/nullify), Lady (instant win vs Prince) |
 | **AI** | Level 1: random. Level 2: evaluation-based (simulates all opponent card possibilities, probabilistic selection) |
 | **Persistence** | ConfigFile — career stats (games played/won per vs. mode) |
 
@@ -37,7 +37,7 @@
 | 7, 42 | Round reveal flow | **Confirmed recommended flow:** both players select simultaneously → cards face-down → brief pause → flip/reveal simultaneously → animate effects & result → move to round history → auto-advance. Skip animation option |
 | 8, 43 | Stats persistence | **Yes — use Godot's `ConfigFile`** to persist career stats per vs. mode. Write to `user://braverats_stats.cfg` |
 | 9, 44, 45 | Scene architecture | **Exact same pattern as Cheaters project:** Application root → Title → Game → GameOver → Help → Pause sub-scenes. Signals for inter-scene communication |
-| 20, 46 | Card name at power 4 | **'Counsellor'** — per `godot/docs/rules.md` which is source of truth for this port |
+| 20, 46 | Card name at power 4 | **'Chancellor'** — per `godot/docs/rules.md` which is source of truth for this port |
 | 47, 49 | AI levels | **Two levels at launch: L1 (random) and L2 (evaluation-based).** L3+ can be added later |
 | 50, 51 | Board layout | **Matches original Gamebuino layout exactly** — user handles scene layout/positioning themselves |
 | 52, 53 | End-of-game screen | **Full replication of original:** winner announcement, final scores, round-by-round history with both cards and result indicators, career victories per mode, Play Again button |
@@ -61,7 +61,7 @@
 | 27 | Title screen | Replicate original title bitmap + menu. Subtle idle animation. Card icons as decoration |
 | 28 | Card back design | Distinctive but simple geometric pattern (diamond/crosshatch) in grey/black. Identical for all cards |
 | 29 | Verification approach | Unit tests for `resolve_round()` covering all 64 card matchups + automated comparison harness between C++ and Godot outputs |
-| 30 | Cancelling interactions (both Spies, both Counsellors) | Replicate C++ implicit approach: both Spies → both get effect; both Counsellors → each gets 2 pts if resolved later |
+| 30 | Cancelling interactions (both Spies, both Chancellors) | Replicate C++ implicit approach: both Spies → both get effect; both Chancellors → each gets 2 pts if resolved later |
 | 31 | Unrealized points display | Show as small "+" followed by number next to each player's score (e.g., "3 +2") |
 | 33 | Replay last game | Not implemented now. Round history on game-over screen is sufficient |
 
@@ -84,7 +84,7 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 | Stats screen | `stats/stats.gd+tscn` | ✅ Win/loss tracking, reset button |
 | Animation | `animator/animator.gd+tscn` | ✅ Singleton: delay, move_card, flip, flash (speed-controlled) |
 | Card scene | `card/card.tscn` | ✅ Area2D with Back (frame.png), Character (characters.png), Value Label |
-| Card art | `card/characters.png` | ✅ 8-frame spritesheet: Jester, Lady, Spy, Assassin, Counsellor, Magician, General, Prince |
+| Card art | `card/characters.png` | ✅ 8-frame spritesheet: Jester, Lady, Spy, Assassin, Chancellor, Magician, General, Prince |
 | Card border | `card/frame.png` | ✅ 2-frame spritesheet: face-up border / face-down |
 | Digit display | `digit_sprite/*.gd+tscn` | ✅ DigitSprite for labels/buttons |
 | Pixel font | `Gamebuino.ttf` | ✅ Imported, used via `tres/label_settings.tres` |
@@ -93,7 +93,7 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 **⚠️ Needs adaptation (Cheaters → Braverats):**
 | Component | Current (Cheaters) | Needed (Braverats) |
 |-----------|--------------------|--------------------|
-| `card/card.gd` | Cheaters `Rank` enum (Ace, 6-10, J, Q, K, Unknown) | Braverats card types (Jester=0, Lady=1, Spy=2, Assassin=3, Counsellor=4, Magician=5, General=6, Prince=7) |
+| `card/card.gd` | Cheaters `Rank` enum (Ace, 6-10, J, Q, K, Unknown) | Braverats card types (Jester=0, Lady=1, Spy=2, Assassin=3, Chancellor=4, Magician=5, General=6, Prince=7) |
 | `deck/deck.gd` | `prepare_cheaters()`: 9 ranks × 4 minus 1 = 35 cards | `prepare_braverats()`: 8 unique cards per player (16 total, 8 per player) |
 | `player/player.gd` | Cheaters: `AI_Level` H/L1-L4, discard/challenge states, Memory, MultiDeck support | Braverats: Human vs AI selection, hand management (8 cards), round play flow, effect tracking |
 | `player/ai.gd` | Cheaters AI: select_discard(), should_challenge(), L1-L4 strategies | Braverats AI: L1 (random card), L2 (evaluation-based card selection) |
@@ -213,7 +213,7 @@ godot/                          ← Cheaters project adapted for Braverats
 │   ├── card.gd                 ❌ Cheaters Rank enum ( redefine for Braverats)
 │   ├── card.tscn               ✅ Back(frame.png) + Character(characters.png) + Value
 │   ├── frame.png               ✅ 2 frames: face-up border / face-down
-│   └── characters.png          ✅ 8 frames: Jester/Lady/Spy/Assassin/Counsellor/Magician/General/Prince
+│   └── characters.png          ✅ 8 frames: Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince
 ├── player/                     ⚠️ Class exists, needs Braverats adaptation
 │   ├── player.gd               ❌ Cheaters discard/challenge logic
 │   ├── player.tscn             ⚠️ Has Hand+Card+Badge (needs layout update)
@@ -269,7 +269,7 @@ Documented in `core/game_logic.gd`. Critical order:
 - Prince vs Assassin (Prince wins)
 - Magician nullifies effects but NOT General's +2
 - Both Spies → both get effect (implicit, not cancelled)
-- Both Counsellors → each gets 2 pts if resolved later
+- Both Chancellors → each gets 2 pts if resolved later
 - General +2 persists and is not nullifiable by subsequent Magician
 
 ---
@@ -282,7 +282,7 @@ Documented in `core/game_logic.gd`. Critical order:
 | 1 | Lady | Instant win vs Prince |
 | 2 | Spy | Reveals opponent's card next round; both Spies = both see opponent |
 | 3 | Assassin | Wins if lowest value played (after other effects) |
-| 4 | Counsellor | Wins 2 points if round is won |
+| 4 | Chancellor | Wins 2 points if round is won |
 | 5 | Magician | Nullifies opponent's card effect (except General's +2) |
 | 6 | General | +2 strength applied to next round (persistent, not nullifiable) |
 | 7 | Prince | Instant win vs Lady; loses to Lady; loses to Assassin |
