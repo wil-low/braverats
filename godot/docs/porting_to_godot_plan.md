@@ -114,93 +114,29 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 
 ### Phase 1: Core Logic (Pure Game Rules) — ✅ COMPLETE
 
-> All files in `main/` directory. File references relative to `godot/`.
+> All files in `main/` directory.
 
-### ✅ `card/card.gd` — Braverats enum, POWER_NAMES, power property
-- Power enum (Jester=0 through Prince=7) ✅
-- POWER_NAMES array ✅
-- `power` property with setter ✅
+### ✅ `card/card.gd` — Braverats enum, display, face control
+- Power enum (Jester=0–7), `power` setter + `set_power()` ✅
 - `power_name` computed property ✅
-- ✅ `face_up` property — controls Facedown node visibility (face-down: Facedown shown, Back/Character/Value hidden)
-- ✅ `set_power(power)` exposed as public method ✅
-- ✅ `_update_display()` sets `Character` sprite frame from power value ✅
-- ✅ `card.tscn` `Character` Sprite2D (hframes=8) referenced by `card.gd` ✅
+- `face_up` — toggles Facedown node visibility ✅
+- `_update_display()` sets `Character` sprite frame + label text ✅
 
 ### ✅ `main/round_result.gd` — Round result enum
-- `Value` enum: `PLAYER0_WINS`, `PLAYER1_WINS`, `HOLD` ✅
-- Helper methods: `is_player_win()`, `is_hold()`, `winner_idx()`, `to_string()` ✅
+- `PLAYER0_WINS`, `PLAYER1_WINS`, `HOLD` + helpers (`is_player_win`, `is_hold`, `winner_idx`) ✅
 
-### ✅ `main/game_logic.gd` — Pure game logic (BUGS FIXED)
-- `resolve_round(card0, card1)` — corrected evaluation order ✅
-  - Jester now checked BEFORE Lady-vs-Prince (Bug 1 fixed)
-  - Magician nullifies opponent's effect but NOT General's +2 (Bug 2 fixed)
-  - General +2 only flags for NEXT round, never affects current comparison
-- `move_cards(source, target)` — deck operations ✅
-- `check_winner()` — game end detection ✅
-- `new_game()` — state reset ✅
-- ⚠️ References `GameState` singleton (needs autoload registration)
+### ✅ `main/game_logic.gd` — Pure game rules
+- `resolve_round()` — corrected eval order (Bugs 1, 2 fixed) ✅
+- `move_cards()`, `check_winner()`, `new_game()` ✅
 
-### ✅ `player/` — DELETED (all Cheaters concepts removed)
-- `player.gd`, `ai.gd`, `player.tscn` — all removed
-- Player identity (Human/AI level) moved to `GameState.ai_levels` array
-- `AI_Level` enum + `AI_LEVEL_NAMES` added to `GameState`
-
-### ✅ `level_selector/` — Updated to use `GameState.AI_Level`
-- `player_level.gd` — uses `GameState.AI_Level` enum
-- `level_selector.gd` — signal uses `Array[GameState.AI_Level]`
-
-### ✅ `application/application.gd` — Updated
-- `save_config()` / `load_config()` — uses `GameState.ai_levels`
-- `_on_round_won()` / `_on_round_finished()` — now take `int` player index
-
-### ⚠️ Remaining bugs (Phase 1 follow-up)
-- **Bug 3:** GameState not registered as autoload in project.godot (user said done)
-- **Bug 4:** GameLogic not registered as autoload in project.godot (user said done)
-
-### ✅ `main/game_state.gd` — Centralized state
-- Scores, held_rounds, counsellor_points, effects, round_history ✅
-- `hold_card0()`, `hold_card1()` ✅
-- `resolve_current_round()` — orchestrates resolution ✅
-- `check_winner()` delegation ✅
-- `is_spy_active()`, `is_general_active()`, `clear_effects()` ✅
-- ⚠️ Not registered as autoload (must be added in project settings)
-
-### ✅ `deck/deck.gd` — `prepare_braverats()` implemented
-- `prepare_braverats()`: 8 unique cards per player (16 total), shuffled together ✅
-
-### ❌ `player/player.gd` — Still Cheaters discard/challenge logic
-- Has `_execute_discard()`, `ai_discard()`, `ai_challenge()` — all Cheaters concepts
-- Need: Braverats card selection flow (select 1 card, play, resolve)
-
-### ❌ `player/ai.gd` — Still Cheaters AI
-- `select_discard()`, `should_challenge()` — Cheaters concepts
-- Need: `select_card(opponent_known_cards, my_hand, ai_level)` for Braverats
-
-### ❌ `player/move.gd` — Still Cheaters Move class
-- `Action` enum: Discard_1..Discard_3, Challenge — Braverats only needs card selection
+### ✅ `main/game_state.gd` — Centralized state + AI config
+- Scores, held_rounds, effects, round_history, `resolve_current_round()` ✅
+- `ai_levels`, `AI_Level` enum, `AI_LEVEL_NAMES` ✅
 
 ### ✅ `player/` — Deleted (all Cheaters concepts)
-- `player.gd` — removed: discard/challenge logic, Move, Memory, Player.State
-- `ai.gd` — removed: Cheaters AI strategies (select_discard, should_challenge)
-- `player.tscn` — removed: Cheaters player layout with hand/badge
-- `move.gd` — never existed (already deleted)
-- Player identity (Human/AI level) moved to `GameState.ai_levels` array
-- AI Level enum moved to `GameState.AI_Level` + `AI_LEVEL_NAMES`
-
-### ✅ `game_state.gd` — Centralized state + AI config
-- Scores, held_rounds, counsellor_points, effects, round_history ✅
-- `hold_card0()`, `hold_card1()` ✅
-- `resolve_current_round()` — orchestrates resolution ✅
-- `check_winner()` delegation ✅
-- `is_spy_active()`, `is_general_active()`, `clear_effects()` ✅
-- `ai_levels: Array[AI_Level]` — AI config for both players ✅
-- `AI_Level` enum + `AI_LEVEL_NAMES` constant ✅
-- ⚠️ Not registered as autoload (must be added in project settings)
-
-### ⚠️ `card/card.tscn` — Scene structure exists but wiring incomplete
-- Has `Character` Sprite2D (hframes=8, characters.png) but `card.gd` doesn't use it
-- Has `Value` Label — displays card name text (not power number)
-- Has `Back` Sprite2D (hframes=2, frame.png) — correct for face-up/down
+### ✅ `level_selector/` — Updated to `GameState.AI_Level` ✅
+### ✅ `application/` — Updated to use `GameState.ai_levels` ✅
+### ✅ `deck/deck.gd` — `prepare_braverats()` (8 unique cards × 2) ✅
 
 ### Phase 2: UI Layer (Adapt Cheaters Scenes)
 - **`card.gd`** — ✅ Already done: uses `characters.png` frame index (0-7) for character display, Facedown node for face-back.
