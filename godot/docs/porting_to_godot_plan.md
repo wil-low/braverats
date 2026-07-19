@@ -329,9 +329,9 @@ Fixed so far: #8 (`game_over.gd` rounds_2→Rounds0), #9 (`game_logic.gd` clear�
 
 | # | File | Line | Issue | Status |
 |---|------|------|-------|--------|
-| 11 | `application.gd` | 32 | `_main.round_won.disconnect()` — no `round_won` signal | 🔴 Open |
-| 12 | `application.gd` | 100 | `_main.interrupted = true` — no such property | 🔴 Open |
-| 13 | `application.gd` | 139-148 | `_on_round_won()` handler — dead code | 🟡 Medium |
+| 11 | `application.gd` | 32 | `_main.round_won.disconnect()` — no `round_won` signal | ✅ Fixed | removed non-existent signal disconnect |
+| 12 | `application.gd` | 100 | `_main.interrupted = true` — no such property | ✅ Fixed | removed stale property reference |
+| 13 | `application.gd` | 139-148 | `_on_round_won()` handler — dead code | ✅ Fixed | removed dead handler method |
 | ~~14~~ | ~~`card.gd`~~ | - | ~~Uses `Counsellor` but plan says `Chancellor`~~ | ~~FIXED~~ |
 | 15 | `help.tscn` | - | Still has Cheaters cards (Guard/Priest/Baron) | 🟡 Medium |
 
