@@ -45,14 +45,14 @@ func all(signals: Array[Signal]) -> Signal:
 
 
 func flip(card: Card, to_faceup: bool, duration: float = 0.3) -> Signal:
-	if card.faceup != to_faceup:
+	if card.face_up != to_faceup:
 		var dur = _d(duration)
 		var pos = card.position
 		var width = card._sprite.get_rect().size.x
 		var tw = _tween_host.create_tween().set_trans(Tween.TRANS_SINE)
 		tw.tween_property(card, "position:x", pos.x + width / 2, dur)
 		tw.parallel().tween_property(card, "scale:x", 0, dur)
-		tw.tween_callback(func (): card.faceup = to_faceup)
+		tw.tween_callback(func (): card.face_up = to_faceup)
 		tw.tween_property(card, "scale:x", 1, dur)
 		tw.parallel().tween_property(card, "position:x", pos.x, dur)
 		tw.finished.connect(func (): card.position = pos)

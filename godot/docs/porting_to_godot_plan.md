@@ -121,9 +121,10 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - POWER_NAMES array ✅
 - `power` property with setter ✅
 - `power_name` computed property ✅
-- ⚠️ `_update_display()` does NOT set `Character` sprite frame — only displays name text
-- ⚠️ `card.tscn` has `Character` Sprite2D (hframes=8, characters.png) but `card.gd` doesn't reference it
-- ❌ `set_power(power)` not exposed as public method
+- ✅ `face_up` property — controls Facedown node visibility (face-down: Facedown shown, Back/Character/Value hidden)
+- ✅ `set_power(power)` exposed as public method ✅
+- ✅ `_update_display()` sets `Character` sprite frame from power value ✅
+- ✅ `card.tscn` `Character` Sprite2D (hframes=8) referenced by `card.gd` ✅
 
 ### ✅ `main/round_result.gd` — Round result enum
 - `Value` enum: `PLAYER0_WINS`, `PLAYER1_WINS`, `HOLD` ✅
@@ -153,11 +154,8 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - `_on_round_won()` / `_on_round_finished()` — now take `int` player index
 
 ### ⚠️ Remaining bugs (Phase 1 follow-up)
-- **Bug 3:** GameState not registered as autoload in project.godot
-- **Bug 4:** GameLogic not registered as autoload in project.godot
-- **Bug 5:** `card.gd` doesn't use `Character` sprite frame index
-- **Bug 6:** `card.gd` has redundant `_power` field + `power` property
-- **Bug 7:** `deck.gd` lacks `prepare_braverats()`
+- **Bug 3:** GameState not registered as autoload in project.godot (user said done)
+- **Bug 4:** GameLogic not registered as autoload in project.godot (user said done)
 
 ### ✅ `main/game_state.gd` — Centralized state
 - Scores, held_rounds, counsellor_points, effects, round_history ✅
@@ -167,9 +165,8 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - `is_spy_active()`, `is_general_active()`, `clear_effects()` ✅
 - ⚠️ Not registered as autoload (must be added in project settings)
 
-### ❌ `deck/deck.gd` — `prepare_braverats()` NOT implemented
-- Only `prepare_cheaters()` exists (35-card Cheaters deck)
-- Need: `prepare_braverats()` — 8 unique cards per player (16 total)
+### ✅ `deck/deck.gd` — `prepare_braverats()` implemented
+- `prepare_braverats()`: 8 unique cards per player (16 total), shuffled together ✅
 
 ### ❌ `player/player.gd` — Still Cheaters discard/challenge logic
 - Has `_execute_discard()`, `ai_discard()`, `ai_challenge()` — all Cheaters concepts
@@ -206,7 +203,7 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - Has `Back` Sprite2D (hframes=2, frame.png) — correct for face-up/down
 
 ### Phase 2: UI Layer (Adapt Cheaters Scenes)
-- **`card.gd`** — Update to use `characters.png` frame index (0-7) for character display. Map power value to frame. Back uses `frame.png` frame 1.
+- **`card.gd`** — ✅ Already done: uses `characters.png` frame index (0-7) for character display, Facedown node for face-back.
 - **`main/main.tscn`** — Already adapted: Effect0/Effect1 for pending effects, Score0/Score1, Plus0/Plus1, Unrealized0/Unrealized1. Wire up labels to GameState.
 - **`player/`** — Deleted (all Cheaters concepts). Braverats player is just a card hand layout: display cards, handle clicks, emit `card_played(card)` signal.
 - **`level_selector/`** — Updated: uses `GameState.AI_Level` now. Player 0 selects Human/L1/L2, Player 1 selects L1/L2 only.
@@ -364,20 +361,7 @@ Documented in `main/game_logic.gd`. Critical order:
 
 **Bug 2 (FIXED):** Magician no longer nullifies General's +2. General only flags for next round. Magician nullifies opponent's card EFFECT but General's persistent +2 bypasses nullification.
 
-**Bug 3 (REMAINING):** GameState not registered as autoload in project.godot.
-**Fix:** Add `[autoload] GameState="*main/game_state.gd"` to project.godot.
-
-**Bug 4 (REMAINING):** GameLogic not registered as autoload in project.godot.
-**Fix:** Add `[autoload] GameLogic="*main/game_logic.gd"` to project.godot.
-
-**Bug 5 (REMAINING):** `card.gd` `_update_display()` doesn't use `Character` sprite frame index.
-**Fix:** Map `power` to `Character.sprite.frame` (0-7 for 8 card types).
-
-**Bug 6 (REMAINING):** `card.gd` uses `_power` as private field but also has a `power` property — redundant setter chain.
-**Fix:** Remove `_power` field, use `power` directly. Add explicit `set_power()` method.
-
-**Bug 7 (REMAINING):** `deck.gd` lacks `prepare_braverats()` — only has `prepare_cheaters()`.
-**Fix:** Add `prepare_braverats()` that creates 8 unique cards per player (16 total).
+**Bug 7 (FIXED):** `deck.gd` now has `prepare_braverats()` that creates 8 unique cards per player (16 total), shuffled together.
 
 ---
 

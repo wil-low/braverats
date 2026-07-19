@@ -9,6 +9,9 @@ var _selected_cards: Array[int] = []
 const NUM_RANKS := 9  # A, 6-10, J, Q, K
 const RANKS_PER_TYPE := 4
 
+## Braverats: 8 unique cards per player (one of each type)
+const BRAVERATS_CARDS_PER_PLAYER := 8
+
 
 func clear() -> void:
 	clear_selection()
@@ -38,6 +41,28 @@ func prepare_cheaters() -> void:
 		var c = card_scene.instantiate()
 		add_child(c)
 		c.rank = r
+
+
+func prepare_braverats() -> void:
+	"""Prepare a Braverats deck: 8 unique cards per player (16 total).
+	Each player gets one of each: Jester, Lady, Spy, Assassin,
+	Chancellor, Magician, General, Prince."""
+	clear()
+	var all_cards: Array[Card] = []
+	
+	# Create 8 unique cards for each player (16 total)
+	for _player in range(2):
+		for p in Card.Power.values():
+			var c = card_scene.instantiate()
+			c.set_power(p)
+			all_cards.append(c)
+	
+	# Shuffle all cards together
+	all_cards.shuffle()
+	
+	# Add to deck
+	for c in all_cards:
+		add_child(c)
 
 
 func pop() -> Card:

@@ -148,7 +148,7 @@ func _deal_card(p: Player, duration: float = 0.5) -> void:
 		return
 	_deal_audio_player.play()
 	_animation_layer.add_child(c)
-	c.faceup = p.idx == 0 
+	c.face_up = p.idx == 0 
 	c.global_position = _deck.global_position
 	var dst: Vector2 = p.hand.get_append_position(c.rank)
 	await Animator.move_card(c, dst, duration)

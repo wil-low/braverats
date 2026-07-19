@@ -24,7 +24,8 @@ const POWER_NAMES := [
 	"Prince",
 ]
 
-@onready var _sprite: Sprite2D = $Sprite
+@onready var _sprite: Sprite2D = $Back
+@onready var _character: Sprite2D = $Character
 @onready var _value_label: Label = $Value
 
 static var b_font: LabelSettings
@@ -37,11 +38,13 @@ var _power: Power = Power.Jester:
 		_power = value
 		_update_display()
 
-var faceup: bool = true:
-	get:
-		return faceup
+var face_up: bool = true:
 	set(value):
-		faceup = value
+		face_up = value
+		$Facedown.visible = not value
+		$Back.visible = value
+		$Character.visible = value
+		$Value.visible = value
 		_update_display()
 
 ## Power value (0-7). Maps directly to characters.png frame index.
@@ -52,24 +55,34 @@ var power: Power:
 		_power = value
 		_update_display()
 
+## Set power from external code (called by Deck, GameState, etc.).
+func set_power(p: Power) -> void:
+	_power = p
+	_update_display()
+
 ## Display name of this card.
 var power_name: String:
 	get:
 		return POWER_NAMES[_power] if _power < POWER_NAMES.size() else "??"
 
 func _update_display() -> void:
-	_sprite.frame = 0 if faceup else 1
-	if faceup:
-		_value_label.text = POWER_NAMES[_power] if _power < POWER_NAMES.size() else "?"
-	else:
-		_value_label.text = ""
+	## Only update when face-up (nodes are hidden when face-down)
+	if not face_up:
+		return
+	## Back border (face-up frame)
+	_sprite.frame = 0
+	## Character sprite (8 frames: Jester..Prince)
+	_character.frame = _power
+	## Label
+	_value_label.text = POWER_NAMES[_power] if _power < POWER_NAMES.size() else "?"
 
 func get_power_name() -> String:
 	return POWER_NAMES[_power] if _power < POWER_NAMES.size() else "??"
 
 func _ready() -> void:
-	faceup = true
+	face_up = true
 	_power = Power.Jester
+	_update_display()
 
 func set_selected(value: bool) -> void:
 	_sprite.modulate = Color.DIM_GRAY if value else Color.WHITE
