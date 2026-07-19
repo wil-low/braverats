@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://cnutq3ty1kcof" path="res://pause/pause.tscn" id="5_nscpw"]
 [ext_resource type="PackedScene" uid="uid://benc3e03kmvd0" path="res://stats/stats.tscn" id="6_hn6yr"]
 [ext_resource type="PackedScene" uid="uid://b8o5ucmniyq87" path="res://help/help.tscn" id="7_5prqa"]
+[ext_resource type="PackedScene" uid="uid://073u7b5lg5b" path="res://game_over/game_over.tscn" id="8_oe2q5"]
 
 [node name="Application" type="Node2D" unique_id=653458706]
 script = ExtResource("1_cwjks")
@@ -31,14 +32,13 @@ visible = false
 process_mode = 3
 visible = false
 
+[node name="GameOver" parent="." unique_id=1763593732 instance=ExtResource("8_oe2q5")]
+visible = false
+
 [connection signal="help_pressed" from="Start" to="." method="_on_start_help_pressed"]
 [connection signal="play_pressed" from="Start" to="." method="_on_start_play_pressed"]
 [connection signal="settings_pressed" from="Start" to="." method="_on_start_settings_pressed"]
 [connection signal="stats_pressed" from="Start" to="." method="_on_start_stats_pressed"]
-[connection signal="menu_pressed" from="Main" to="." method="_on_main_menu_pressed"]
-[connection signal="round_finished" from="Main" to="." method="_on_round_finished"]
-[connection signal="round_won" from="Main" to="." method="_on_round_won"]
-[connection signal="save_stats" from="Main" to="." method="save_config"]
 [connection signal="exit_pressed" from="Pause" to="." method="_on_pause_exit_pressed"]
 [connection signal="help_pressed" from="Pause" to="." method="_on_pause_help_pressed"]
 [connection signal="resume_pressed" from="Pause" to="." method="_on_pause_resume_pressed"]
