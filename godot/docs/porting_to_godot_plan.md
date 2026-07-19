@@ -143,8 +143,9 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - **`main/main.tscn`** — Already adapted: Effect0/Effect1 for pending effects, Score0/Score1, Plus0/Plus1, Unrealized0/Unrealized1. Wire up labels to GameState.
 - **`player/`** — Deleted (all Cheaters concepts). Braverats player is just a card hand layout: display cards, handle clicks, emit `card_played(card)` signal.
 - **`level_selector/`** — Updated: uses `GameState.AI_Level` now. Player 0 selects Human/L1/L2, Player 1 selects L1/L2 only.
-- **`game_over.tscn`** — New scene: winner announcement, final scores, round-by-round history (both cards, results), career victories, Play Again button.
-- **`help.tscn`** — New scene: per-card help descriptions (from original `ui.cpp`), how-to-play rules text.
+- **`game_over/game_over.tscn`** — ✅ Exists (Cheaters layout): Message, GameScore, Rounds1/2, TotalScore, Button. Needs Braverats content (card names, Braverats round history).
+- **`help/help.tscn`** — ✅ Exists (Cheaters card types): Guard/Priest/Baron etc. Needs Braverats cards (Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince).
+- **`help/card_help_page.tscn`** — ✅ Exists (tool node): card icon, name, description. Needs `Card.Power` instead of `Deck.CardType`.
 
 ### Phase 3: Game Loop Integration
 - **`main/main.gd`** — Rewrite game loop:
