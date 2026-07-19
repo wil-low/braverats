@@ -57,7 +57,7 @@ func show_game() -> void:
 					p1_mark = " +"
 			RoundResult.Value.HOLD:
 				p0_mark = " —"
-			p1_mark = " —"
+				p1_mark = " —"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
 		p1_rounds += c1.power_name + p1_mark + "\n"
 		p0_rounds += c0.power_name + p0_mark + "\n"
@@ -75,8 +75,8 @@ func show_game() -> void:
 	if not _stats:
 		_stats = get_node_or_null("/root/Stats")
 	if _stats:
-		var p0_wins := _stats._totals_and_wins[2 * int(GameState.ai_levels[0]) + 1]
-		var p1_wins := _stats._totals_and_wins[2 * int(GameState.ai_levels[1]) + 1]
+		var p0_wins: int = _stats._totals_and_wins[2 * int(GameState.ai_levels[0]) + 1]
+		var p1_wins: int = _stats._totals_and_wins[2 * int(GameState.ai_levels[1]) + 1]
 		total_score.text = "%d : %d" % [p0_wins, p1_wins]
 	else:
 		total_score.text = "— : —"

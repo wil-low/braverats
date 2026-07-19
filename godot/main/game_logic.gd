@@ -44,8 +44,8 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 				return RoundResult.Value.HOLD # Jester vs Jester → hold
 			Card.Power.General:
 				# Both get +2 to next card (persistent effect)
-				GameState.effects[0][Card.Power.General] = true
-				GameState.effects[1][Card.Power.General] = true
+				GameState.effects[0] = Card.Power.General
+				GameState.effects[1] = Card.Power.General
 				# Same power = tie → Player0 wins (first to act in original)
 				return RoundResult.Value.PLAYER0_WINS
 			_:
@@ -76,9 +76,9 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 	var power0: int = card0.power
 	var power1: int = card1.power
 	if card0.power == Card.Power.General:
-		GameState.effects[0][Card.Power.General] = true # Flag for next round
+		GameState.effects[0] = Card.Power.General # Flag for next round
 	if card1.power == Card.Power.General:
-		GameState.effects[1][Card.Power.General] = true # Flag for next round
+		GameState.effects[1] = Card.Power.General # Flag for next round
 
 	# Apply nullification (Magician sets opponent to 0, but NOT General)
 	if nullified0:
@@ -110,9 +110,9 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 
 	# ─── Step 7: Spy effect flag (carried forward to next round) ────────
 	if card0.power == Card.Power.Spy:
-		GameState.effects[0][Card.Power.Spy] = true
+		GameState.effects[0] = Card.Power.Spy
 	if card1.power == Card.Power.Spy:
-		GameState.effects[1][Card.Power.Spy] = true
+		GameState.effects[1] = Card.Power.Spy
 
 	# ─── Step 8: Chancellor tracking ─────────────────────────────────────
 	# Chancellor counts as 2 points if this player wins the round
@@ -175,9 +175,7 @@ static func new_game() -> void:
 	GameState.unrealized = [0, 0]
 	GameState.held_rounds = 0
 	GameState.chancellor_points = [0, 0]
-	GameState.effects = [[], []]
-	for i in 2:
-		GameState.effects[i] = {Card.Power.Spy: false, Card.Power.General: false}
+	GameState.effects = [Card.Power.Jester, Card.Power.Jester]
 	GameState.lady_beats_prince_player = -1
 	GameState.game_over = false
 	GameState.round_count = 0

@@ -156,37 +156,8 @@ func get_selected_cards() -> Array[Card]:
 	return result
 
 
-func get_append_position(rank: Card.Rank) -> Vector2:
-	# Stack cards under the last visible when we've reached max_show
-	if max_show >= 0 and get_child_count() >= max_show:
-		var last_idx := max_show - 1
-		return Vector2(
-			global_position.x + last_idx * fan_offset,
-			global_position.y
-		)
+func get_append_position() -> Vector2:
 	return Vector2(global_position.x + get_child_count() * fan_offset, global_position.y)
-
-
-func get_4_of_a_kind() -> Array[Card]:
-	var rank_groups: Dictionary = {}
-	for c in get_children():
-		if c.rank != Card.Rank.Unknown:
-			if !rank_groups.has(c.rank):
-				rank_groups[c.rank] = []
-			rank_groups[c.rank].append(c)
-	
-	var min_index := 999
-	var cards_to_remove : Array[Card]
-	for rank in rank_groups:
-		var cards = rank_groups[rank]
-		if cards.size() >= 4:
-			print("Player " + str(get_parent().idx) + " discards 4 " + Card.RANK_NAMES[rank])
-			for i in range(4):
-				var card: Card = cards[i]
-				if min_index > card.get_index():
-					min_index = card.get_index()
-				cards_to_remove.append(card)
-	return cards_to_remove
 
 
 func get_card_count() -> int:

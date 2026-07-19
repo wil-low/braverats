@@ -181,7 +181,7 @@ func _ai_select(player_idx: int) -> void:
 
 	# If opponent already selected, proceed to reveal
 	var opponent_already := (player_idx == 0 and GameState.held_cards1 != null) or \
-	                        (player_idx == 1 and GameState.held_cards0 != null)
+							(player_idx == 1 and GameState.held_cards0 != null)
 	if opponent_already:
 		_start_reveal()
 	else:
@@ -217,8 +217,8 @@ func _start_reveal() -> void:
 	c1.face_up = false
 
 	# Animate move to table positions
-	var dest0 := $Played0.global_position
-	var dest1 := $Played1.global_position
+	var dest0: Vector2 = $Played0.global_position
+	var dest1: Vector2 = $Played1.global_position
 	await Animator.move_card(c0, dest0, 0.4)
 	await Animator.move_card(c1, dest1, 0.4)
 
@@ -253,7 +253,7 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 		_round_over_audio.play()
 
 	# Move cards to discard pile
-	var marker_pos := $DiscardMarker.global_position
+	var marker_pos: Vector2 = $DiscardMarker.global_position
 	await Animator.move_card(c0, marker_pos, 0.3)
 	await Animator.move_card(c1, marker_pos, 0.3)
 	c0.queue_free()

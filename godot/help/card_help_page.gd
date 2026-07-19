@@ -5,11 +5,11 @@ extends Node2D
 @onready var _name: Label = $Name
 @onready var _description: Label = $Description
 
-@export var card_type: Deck.CardType = Deck.CardType.Unknown:
+@export var card_power: Card.Power = Card.Power.Jester:
 	set(value):
-		card_type = value
+		card_power = value
 		if Engine.is_editor_hint():
-			_card.frame = card_type
+			_card.frame = card_power
 
 @export var card_name: String:
 	set(value):
@@ -25,6 +25,6 @@ extends Node2D
 
 
 func _ready() -> void:
-	_card.frame = card_type
+	_card.frame = card_power
 	_name.text = card_name
 	_description.text = card_description

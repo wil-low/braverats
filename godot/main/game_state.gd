@@ -55,10 +55,10 @@ var held_rounds: int = 0
 ## Chancellor bonus points (added to score when round is won)
 var chancellor_points: Array[int] = [0, 0]
 
-## Pending effects carried between rounds:
-##   effects[player_idx][effect_power] = bool
-##   Effect types: Spy (see opponent's card), General (+2 next card)
-var effects: Array[Dictionary] = [[], []]
+## Pending effects carried between rounds (one effect per player, no stacking).
+## effects[player_idx] = active Power enum, Card.Power.Jester means no effect.
+## Effect types: Spy (see opponent's card), General (+2 next card).
+var effects: Array[Card.Power] = [Card.Power.Jester, Card.Power.Jester]
 
 ## Round number (0-indexed, max MAX_ROUNDS-1)
 var round_count: int = 0
@@ -183,14 +183,13 @@ func get_total_rounds() -> int:
 
 ## Check if Spy effect is active for a player (next round reveals opponent).
 func is_spy_active(player_idx: int) -> bool:
-	return effects[player_idx].get(Card.Power.Spy, false)
+	return effects[player_idx] == Card.Power.Spy
 
 ## Check if General effect is active for a player (+2 next card).
 func is_general_active(player_idx: int) -> bool:
-	return effects[player_idx].get(Card.Power.General, false)
+	return effects[player_idx] == Card.Power.General
 
 ## Reset effects after they resolve (end of round).
 func clear_effects() -> void:
 	for i in 2:
-		effects[i][Card.Power.Spy] = false
-		effects[i][Card.Power.General] = false
+		effects[i] = Card.Power.Jester

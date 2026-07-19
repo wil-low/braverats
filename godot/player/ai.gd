@@ -49,8 +49,9 @@ static func _level2(my_cards: Array[Card], opponent_known: Array[Card], player_i
 	var opponent_cards: Array[Card]
 	if opponent_known.is_empty():
 		# Opponent could have any card (not revealed by Spy)
+		var opp_card: Card
 		for p in Card.Power.values():
-			var opp_card := Card.new()
+			opp_card = Card.new()
 			opp_card.set_power(p)
 			opponent_cards.append(opp_card)
 		opp_card.free()  # Clean up last created card

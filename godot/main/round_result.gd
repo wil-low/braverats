@@ -26,7 +26,7 @@ func winner_idx() -> int:
 		return -1
 	return value
 
-func to_string() -> String:
+func _to_string() -> String:
 	match value:
 		Value.PLAYER0_WINS:
 			return "PLAYER0_WINS"
