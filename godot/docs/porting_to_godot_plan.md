@@ -1,0 +1,292 @@
+# Braverats → Godot Porting Plan
+
+---
+
+## What the Game Actually Is
+
+**Braverats** — a 2-player strategy card battle game with 8 unique cards, each with special abilities. Players each have 8 cards, play one per round for up to 8 rounds. First to 4 points wins (or most points after all rounds).
+
+---
+
+## Game Summary
+
+| Aspect | Details |
+|--------|---------|
+| **Original platform** | Gamebuino (84×48 monochrome LCD, D-pad + A/B/C buttons, Arduino) |
+| **Godot viewport** | 672×384 at 8× scale (84×48 logical) — matches existing Cheaters project |
+| **Players** | Player 0: Human or AI (L1/L2). Player 1: always AI (L1/L2). Single-player vs AI only. |
+| **Cards** | 8 cards: Jester, Lady, Spy, Assassin, Counsellor, Magician, General, Prince |
+| **Special mechanics** | Spy (see opponent's card next round), Magician (nullify effects), General (+2 strength next turn), Prince (instant win vs Lady), Assassin (lowest wins), Counsellor (2 pts on win), Jester (hold/nullify), Lady (instant win vs Prince) |
+| **AI** | Level 1: random. Level 2: evaluation-based (simulates all opponent card possibilities, probabilistic selection) |
+| **Persistence** | ConfigFile — career stats (games played/won per vs. mode) |
+
+---
+
+## Decisions from Grill Session
+
+### Resolved Decisions
+
+| # | Topic | Decision |
+|---|-------|----------|
+| 1 | Existing `godot/` directory (Cheaters) | **Re-use the existing Cheaters project structure** — adapt its pattern (Application→Title→Game→GameOver→Pause) since the infrastructure is clean and already in place |
+| 2, 3, 32 | Display resolution & scale | **84×48 logical at 672×384 viewport, 8× scale**, GL Compatibility mode, `stretch_mode=2d`. Pixel font: Gamebuino.ttf. Preserves original aesthetic |
+| 36, 38 | Game modes / player config | **Player 0 can be Human or any AI level (L1, L2). Player 1 is always AI.** Single-player vs AI only — no hot-seat multiplayer |
+| 4, 37, 39 | Input method | **Mouse only (left-click).** Card selection via clicking cards in hand. Menu navigation, help, pause — all mouse-driven. No keyboard, no gamepad |
+| 5, 40 | Card artwork | **User provides custom pixel sprites.** Working on `godot/card/card.tscn`. Will supply original-style art rather than upscaled Gamebuino bitmaps |
+| 6, 41 | Card effects resolution | **Replicate exact C++ evaluation order** for faithful behavior. Document order clearly in comments |
+| 7, 42 | Round reveal flow | **Confirmed recommended flow:** both players select simultaneously → cards face-down → brief pause → flip/reveal simultaneously → animate effects & result → move to round history → auto-advance. Skip animation option |
+| 8, 43 | Stats persistence | **Yes — use Godot's `ConfigFile`** to persist career stats per vs. mode. Write to `user://braverats_stats.cfg` |
+| 9, 44, 45 | Scene architecture | **Exact same pattern as Cheaters project:** Application root → Title → Game → GameOver → Help → Pause sub-scenes. Signals for inter-scene communication |
+| 20, 46 | Card name at power 4 | **'Counsellor'** — per `godot/docs/rules.md` which is source of truth for this port |
+| 47, 49 | AI levels | **Two levels at launch: L1 (random) and L2 (evaluation-based).** L3+ can be added later |
+| 50, 51 | Board layout | **Matches original Gamebuino layout exactly** — user handles scene layout/positioning themselves |
+| 52, 53 | End-of-game screen | **Full replication of original:** winner announcement, final scores, round-by-round history with both cards and result indicators, career victories per mode, Play Again button |
+
+### Open / To-Be-Decided
+
+| # | Topic | Current State |
+|---|-------|---------------|
+| 12 | On-hold mechanic & pending effects visuals | Needs design: held-round indicators, Spy/General persistent effect icons |
+| 13 | Help/tutorial system | Three-tier recommended: per-card help (press B/mouse), how-to-play screen, card encyclopedia |
+| 14 | Sound design | Recreate original 2 square-wave patterns + add reveal sound & game-over fanfare. No background music |
+| 15 | AI vs AI spectator mode | Fixed pace with pause. Speed slider (slow/normal/fast/instant) |
+| 17 | Card selection detail | Click-to-select in hand (mouse). Selected card visually highlighted. Selection = confirmation |
+| 18 | Project file structure | See Architecture section below |
+| 19 | Game state management | **Single `GameState` autoload singleton** — centralized state, mirroring original's approach |
+| 21 | Round auto-advance | Auto-advance (1-2s pause) with button press to skip. Faster for AI mode |
+| 22 | Card ID in history | Full card names + small icon/color swatch (not single letters like original) |
+| 23 | End conditions | End early when someone reaches 4 points (unrealized points counted). If 8 rounds and tied → draw |
+| 25 | Color palette | Gamebuino 3-color (black/white/grey) for UI. Each card gets a distinct muted color background for recognition |
+| 26 | Pause menu | 3 options: Resume, Quit (to title), Statistics. No "Save for later" (not needed with ConfigFile) |
+| 27 | Title screen | Replicate original title bitmap + menu. Subtle idle animation. Card icons as decoration |
+| 28 | Card back design | Distinctive but simple geometric pattern (diamond/crosshatch) in grey/black. Identical for all cards |
+| 29 | Verification approach | Unit tests for `resolve_round()` covering all 64 card matchups + automated comparison harness between C++ and Godot outputs |
+| 30 | Cancelling interactions (both Spies, both Counsellors) | Replicate C++ implicit approach: both Spies → both get effect; both Counsellors → each gets 2 pts if resolved later |
+| 31 | Unrealized points display | Show as small "+" followed by number next to each player's score (e.g., "3 +2") |
+| 33 | Replay last game | Not implemented now. Round history on game-over screen is sufficient |
+
+---
+
+## Migration Strategy
+
+### Current State (from Cheaters project reuse)
+
+The `godot/` directory is the Cheaters project adapted as the Braverats base. Much infrastructure is already in place:
+
+**✅ Completed infrastructure:**
+| Component | File(s) | Status |
+|-----------|---------|--------|
+| Project config | `project.godot` | ✅ Named "Braverats", 672×384, 8× scale, GL Compat, Animator autoload |
+| Application root | `application/application.gd+tscn` | ✅ Scene tree controller (Start↔Main↔Pause↔LevelSelector↔Stats) |
+| Title screen | `start/start.gd+tscn` | ✅ Title with PLAY/SETTINGS/STATS/HELP buttons + signals |
+| Pause overlay | `pause/pause.gd+tscn` | ✅ Resume/STATS/HELP/EXIT buttons |
+| Level selector | `level_selector/*.gd+tscn` | ✅ PlayerLevel, SpeedLevel, DigitButton (for AI level selection) |
+| Stats screen | `stats/stats.gd+tscn` | ✅ Win/loss tracking, reset button |
+| Animation | `animator/animator.gd+tscn` | ✅ Singleton: delay, move_card, flip, flash (speed-controlled) |
+| Card scene | `card/card.tscn` | ✅ Area2D with Back (frame.png), Character (characters.png), Value Label |
+| Card art | `card/characters.png` | ✅ 8-frame spritesheet: Jester, Lady, Spy, Assassin, Counsellor, Magician, General, Prince |
+| Card border | `card/frame.png` | ✅ 2-frame spritesheet: face-up border / face-down |
+| Digit display | `digit_sprite/*.gd+tscn` | ✅ DigitSprite for labels/buttons |
+| Pixel font | `Gamebuino.ttf` | ✅ Imported, used via `tres/label_settings.tres` |
+| Main scene layout | `main/main.tscn` | ✅ Adapted for Braverats: P0/P1 scores, Unrealized+Plus labels, Effect0/Effect1 Sprite2Ds for pending effect icons |
+
+**⚠️ Needs adaptation (Cheaters → Braverats):**
+| Component | Current (Cheaters) | Needed (Braverats) |
+|-----------|--------------------|--------------------|
+| `card/card.gd` | Cheaters `Rank` enum (Ace, 6-10, J, Q, K, Unknown) | Braverats card types (Jester=0, Lady=1, Spy=2, Assassin=3, Counsellor=4, Magician=5, General=6, Prince=7) |
+| `deck/deck.gd` | `prepare_cheaters()`: 9 ranks × 4 minus 1 = 35 cards | `prepare_braverats()`: 8 unique cards per player (16 total, 8 per player) |
+| `player/player.gd` | Cheaters: `AI_Level` H/L1-L4, discard/challenge states, Memory, MultiDeck support | Braverats: Human vs AI selection, hand management (8 cards), round play flow, effect tracking |
+| `player/ai.gd` | Cheaters AI: select_discard(), should_challenge(), L1-L4 strategies | Braverats AI: L1 (random card), L2 (evaluation-based card selection) |
+| `main/main.gd` | Cheaters game loop: deal, discard, challenge, table_rank, win check | Braverats game loop: deal, simultaneous play, resolve_round, move_cards, check_winner, round history |
+
+**❌ Missing — needs creation:**
+| Component | Purpose |
+|-----------|--------|
+| `game_logic.gd` | Core rules: `resolve_round()`, `move_cards()`, `check_winner()`, `new_game()`. UI-agnostic, testable. |
+| `round_result.gd` | Enum for round results (Player0 wins, Player1 wins, Hold) |
+| `game_over.tscn` | End-of-game screen: winner, scores, round history, career stats, Play Again |
+| `help.tscn` | How-to-play + per-card help (from original ui.cpp help text) |
+| `game_state.gd` (autoload) | Centralized GameState singleton: players, rounds, scores, effects, held rounds, pending commands |
+| `audio_manager.gd` (autoload) | Sound effects: card selection, reveal, round end, game over |
+| `stats_manager.gd` (autoload) | ConfigFile persistence for career stats |
+
+---
+
+### Phase 1: Core Logic (Pure Game Rules)
+- **`card.gd`** — Redefine: Braverats enum (Jester=0 through Prince=7), POWER_NAMES array, power value property. Update `_update_display()` to use character frame index = power value. Keep Area2D structure for click detection.
+- **`deck/deck.gd`** — Add `prepare_braverats()`: 8 unique cards per player (16 total), shuffle per player's hand. Keep existing pop()/clear()/shift_to() methods.
+- **`round_result.gd`** — New enum: `Player0Wins`, `Player1Wins`, `Hold` (enum values 0, 1, 2).
+- **`game_logic.gd`** — New pure-logic script: port C++ `resolve_round()`, `move_cards()`, `check_winner()`, `new_game()`. Input/output via data classes. No Godot node references. Testable with unit tests.
+- **`player/ai.gd`** — Adapt: `select_card(opponent_known_cards, my_hand, ai_level)` → returns Card. L1: random. L2: simulate all opponent cards, score expected outcome, probabilistic selection.
+- **`game_state.gd`** (autoload) — Centralized state: `_players[2]`, `_rounds[8]`, `_round_count`, `_scores[2]`, `_unrealized[2]`, `_effects[2]` (Spy/General flags), `_pending_cmd`. Methods: `new_game()`, `play_card(player_idx, card)`, `resolve_current_round()`, `advance_round()`.
+
+### Phase 2: UI Layer (Adapt Cheaters Scenes)
+- **`card.gd`** — Update to use `characters.png` frame index (0-7) for character display. Map power value to frame. Back uses `frame.png` frame 1.
+- **`main/main.tscn`** — Already adapted: Effect0/Effect1 for pending effects, Score0/Score1, Plus0/Plus1, Unrealized0/Unrealized1. Wire up labels to GameState.
+- **`player/player.gd`** — Adapt: remove Cheaters discard/challenge logic. New flow: hold 8 cards, select 1, play card → emit `card_played(card)` signal. Track effects (Spy, General).
+- **`level_selector/`** — Adapt: Player 0 selects Human/L1/L2, Player 1 selects L1/L2 only (Player 1 is always AI).
+- **`game_over.tscn`** — New scene: winner announcement, final scores, round-by-round history (both cards, results), career victories, Play Again button.
+- **`help.tscn`** — New scene: per-card help descriptions (from original `ui.cpp`), how-to-play rules text.
+
+### Phase 3: Game Loop Integration
+- **`main/main.gd`** — Rewrite game loop:
+  1. `new_game()` — deal 8 cards each, clear GameState, start round 0
+  2. Human selects card → click → `play_card()` → AI selects card → resolve
+  3. Show face-down → brief pause → flip/reveal simultaneously
+  4. `game_logic.resolve_round()` → animate result → move cards to history area
+  5. Auto-advance (1-2s) or button press to skip
+  6. Check winner → game_over.tscn or next round
+- **`animator/animator.gd`** — Add: `reveal_cards(card0, card1)`, `show_effect(player_idx, effect_type)`, `show_result(result_text, duration)`
+- **Pause overlay** — Already exists. Connect to GameState: Resume, Quit (to title, discard current game), Statistics.
+
+### Phase 4: Polish
+- **Auto-advance** — 1-2s pause between rounds, button press to skip. Shorter for AI vs AI mode.
+- **Unrealized points** — `Plus0`/`Plus1` labels + `Unrealized0`/`Unrealized1` count labels already in main.tscn. Update when held rounds resolve.
+- **Effect indicators** — `Effect0`/`Effect1` Sprite2Ds (characters.png offset 3.5, 6) already in main.tscn. Show Spy icon (frame 2) when Spy effect active, General icon (frame 6) with "+2" when General effect active.
+
+### Phase 5: Verification
+- Unit tests for `game_logic.resolve_round()` covering all 64 card-vs-card matchups
+- Automated comparison harness: same card pairs through C++ and GDScript, compare `RoundResult` output
+- Manual playtesting for feel and UX
+
+---
+
+### Implementation Order (Refined)
+
+1. **Pure logic** — `card.gd` (Braverats enum), `round_result.gd`, `game_logic.gd`, `game_state.gd` autoload
+2. **Deck & card UI** — `deck.gd` (prepare_braverats), `card.tscn` wiring (character frames), `card.gd` display logic
+3. **Player system** — `player.gd` (8-card hand, click-to-play), `player.tscn` layout (P0/P1)
+4. **AI integration** — `ai.gd` (L1 random, L2 evaluation), integrate into `main.gd`
+5. **Game loop** — `main.gd` rewrite: deal → select → resolve → animate → advance → check winner
+6. **Scene wiring** — `application.gd` (Start→Game→GameOver→Pause flow), connect signals
+7. **Game over** — `game_over.tscn` (winner, history, stats)
+8. **Menu/selector** — `start.tscn`, `level_selector` (P0: Human/L1/L2, P1: L1/L2 only)
+9. **Help** — `help.tscn` (per-card descriptions, how-to-play)
+10. **Animations** — `animator.gd` additions (reveal, effect display, result overlay)
+11. **Sound** — `audio_manager.gd` (PatternA, PatternB, reveal, fanfare)
+12. **Stats** — ConfigFile persistence, `stats.tscn` wiring
+14. **Verification** — Unit tests, C++ comparison harness, manual playtesting
+
+---
+
+## Key Differences (Gamebuino → Godot)
+
+| Gamebuino | Godot |
+|-----------|-------|
+| 84×48 monochrome display | 672×384 at 8× scale, colored display |
+| D-pad + A/B/C buttons | Mouse only (left-click) |
+| PROGMEM bitmaps | PNG textures / user-supplied pixel art |
+| `srand()` / `rand()` | Godot `randi()` |
+| EEPROM persistence | `ConfigFile` (`user://braverats_stats.cfg`) |
+| 16MHz, minimal RAM | Full CPU, no optimization needed |
+| `goto` statements | Standard GDScript control flow |
+
+---
+
+## Architecture
+
+```
+godot/                          ← Cheaters project adapted for Braverats
+├── project.godot               ✅ Named "Braverats", 672×384, 8× scale, GL Compat
+├── application/                ✅ Scene tree controller (Start↔Main↔Pause↔LevelSelector↔Stats)
+│   ├── application.gd
+│   └── application.tscn
+├── start/                      ✅ Title screen + menu (needs menu text update)
+│   ├── start.gd
+│   └── start.tscn
+├── pause/                      ✅ Pause overlay (needs option text update)
+│   ├── pause.gd
+│   └── pause.tscn
+├── level_selector/             ✅ AI level selection (needs P1-only-AI constraint)
+│   ├── level_selector.gd+tscn
+│   ├── player_level.gd+tscn
+│   ├── speed_level.gd+tscn
+│   └── digit_button.gd+tscn
+├── stats/                      ✅ Win/loss stats (needs config path update)
+│   ├── stats.gd
+│   └── stats.tscn
+├── main/                       ⚠️ Layout done, script needs rewrite
+│   ├── main.gd                 ❌ Cheaters game loop (rewrite for Braverats)
+│   ├── main.tscn               ✅ P0/P1 scores, Unrealized/Plus, Effect0/Effect1
+│   └── menu.png
+├── card/                       ⚠️ Scene done, script needs adaptation
+│   ├── card.gd                 ❌ Cheaters Rank enum ( redefine for Braverats)
+│   ├── card.tscn               ✅ Back(frame.png) + Character(characters.png) + Value
+│   ├── frame.png               ✅ 2 frames: face-up border / face-down
+│   └── characters.png          ✅ 8 frames: Jester/Lady/Spy/Assassin/Counsellor/Magician/General/Prince
+├── player/                     ⚠️ Class exists, needs Braverats adaptation
+│   ├── player.gd               ❌ Cheaters discard/challenge logic
+│   ├── player.tscn             ⚠️ Has Hand+Card+Badge (needs layout update)
+│   ├── ai.gd                   ❌ Cheaters AI (adapt for card selection)
+│   └── move.gd                 ❌ Cheaters Move (needs update or replace)
+├── deck/                       ⚠️ Infrastructure exists, needs new method
+│   ├── deck.gd                 ⚠️ Has prepare_cheaters() (add prepare_braverats())
+│   └── deck.tscn               ✅ Sprite2D + card_scene export
+├── animator/                   ✅ Singleton: delay, move_card, flip, flash
+│   ├── animator.gd
+│   └── animator.tscn
+├── digit_sprite/               ✅ Digit display for labels/buttons
+│   ├── digit_sprite.gd+tscn
+│   └── digits.png
+├── tres/                       ✅ Pixel font settings
+│   └── label_settings.tres
+├── Gamebuino.ttf               ✅ Pixel font
+├── docs/                       ✅ rules.md, conventions.md, invariants.md
+│   ├── rules.md
+│   ├── conventions.md
+│   └── invariants.md
+├── game_logic.gd               ❌ NEW: pure game rules
+├── round_result.gd             ❌ NEW: round result enum
+├── game_over.tscn              ❌ NEW: end-of-game scene
+├── help.tscn                   ❌ NEW: how-to-play + card encyclopedia
+├── game_state.gd (autoload)    ❌ NEW: centralized game state
+├── audio_manager.gd (autoload) ❌ NEW: sound effects
+└── stats_manager.gd (autoload) ❌ NEW: ConfigFile persistence
+```
+
+### Legend
+| Symbol | Meaning |
+|--------|--------|
+| ✅ | Ready to reuse as-is (infrastructure) |
+| ⚠️ | Exists but needs adaptation for Braverats |
+| ❌ | Needs to be created new |
+
+---
+
+## Evaluation Order (Faithful to C++)
+
+Documented in `core/game_logic.gd`. Critical order:
+1. General +2 (persistent, NOT nullifiable by Magician)
+2. Jester nullify (nullifies everything including Prince)
+3. Value comparison (after Jester, before Assassin)
+4. Assassin invert (after other effects, before Spy/General flags)
+5. Spy/General effect flags
+6. Prince instant win (beats Assassin, loses to Lady)
+
+**Key interactions to test:**
+- Jester vs all 8 cards (16 cases including mirror)
+- Lady vs Prince (instant win)
+- Prince vs Assassin (Prince wins)
+- Magician nullifies effects but NOT General's +2
+- Both Spies → both get effect (implicit, not cancelled)
+- Both Counsellors → each gets 2 pts if resolved later
+- General +2 persists and is not nullifiable by subsequent Magician
+
+---
+
+## Card Reference
+
+| Power | Name | Effect |
+|-------|------|--------|
+| 0 | Jester | Holds the round (draw), nullifies opponent's card effect |
+| 1 | Lady | Instant win vs Prince |
+| 2 | Spy | Reveals opponent's card next round; both Spies = both see opponent |
+| 3 | Assassin | Wins if lowest value played (after other effects) |
+| 4 | Counsellor | Wins 2 points if round is won |
+| 5 | Magician | Nullifies opponent's card effect (except General's +2) |
+| 6 | General | +2 strength applied to next round (persistent, not nullifiable) |
+| 7 | Prince | Instant win vs Lady; loses to Lady; loses to Assassin |
+
+---
+
+*Plan last updated: 2026-07-19 (Grill session)*

@@ -21,17 +21,15 @@
 - **`await Animator.flip/move_card/delay`** for all timed sequences
 - **Never** use `yield` or `await get_tree().create_timer` directly
 
-## Game-Specific Enums
+## Braverats Card Reference (in porting)
 
-| Enum | Values | Meaning |
-|---|---|---|
-| `Move.Action` | `Discard_1`, `Discard_2`, `Discard_3`, `Challenge` | Discard_X = player discards X cards for the table rank |
-| `Player.State` | `IDLE`, `SELECT_DISCARD`, `SELECT_CHALLENGE` | Controls what input is accepted |
-| `Card.Rank` | `Ace` (0) through `King` (9), `Unknown` (10) | Card rank enum |
-| `Player.AI_Level` | `H` (0), `L1` (1) through `L4` (4) | Human + 4 difficulty levels |
-
-## Data Conventions
-
-- **`Move._table_rank`**: Always the declared table rank, never the actual card ranks of the discard
-- **`Memory`**: Initialized per game in `_new_game()`, shared via `Player.memory`
-- **AI class**: Static-only `class_name` — no members, only static methods
+| Power | Name | characters.png frame | Effect |
+|---|---|---|---|
+| 0 | Jester | 0 | Round nullified → on hold. Overrides all except Magician. |
+| 1 | Lady | 1 | If opponent played Prince, instant game win. |
+| 2 | Spy | 2 | Next round, opponent reveals first. Both Spies = both see opponent. |
+| 3 | Assassin | 3 | Lowest strength wins (inverts comparison). After other effects. |
+| 4 | Counsellor | 4 | Wins 2 points if round won. Cancels if both play it. |
+| 5 | Magician | 5 | Nullifies opponent's power. Does not affect General's +2. |
+| 6 | General | 6 | Next card gets +2 strength. Cannot be nullified by subsequent Magician. |
+| 7 | Prince | 7 | Wins round regardless of strength. Loses to Lady, loses to Assassin. |
