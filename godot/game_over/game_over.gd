@@ -6,7 +6,7 @@ signal play_again_pressed
 @onready var message: Label = $Message
 @onready var game_score: Label = $GameScore
 @onready var rounds_1: Label = $Rounds1
-@onready var rounds_2: Label = $Rounds2
+@onready var rounds_0: Label = $Rounds0
 @onready var total_score: Label = $TotalScore
 
 var _stats: Node = null
@@ -69,7 +69,7 @@ func show_game() -> void:
 		p1_rounds = p1_rounds.substr(0, p1_rounds.length() - 1)
 
 	rounds_1.text = p1_rounds if not p1_rounds.is_empty() else "—"
-	rounds_2.text = p0_rounds if not p0_rounds.is_empty() else "—"
+	rounds_0.text = p0_rounds if not p0_rounds.is_empty() else "—"
 
 	## Career victories per mode (original: _players[x]._victory_count at y=41)
 	if not _stats:

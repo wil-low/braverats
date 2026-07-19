@@ -60,14 +60,10 @@ func flip(card: Card, to_faceup: bool, duration: float = 0.3) -> Signal:
 	return _immediate()
 
 
-func reveal_hand(p: Player, hide_afterwards: bool = true) -> Signal:
-	if p.hand.get_child_count() > 0:
-		for card in p.hand.get_children():
-			flip(card, true)
-		await delay(1)
-		if hide_afterwards:
-			for card in p.hand.get_children():
-				await flip(card, false)
+func reveal_cards(card0: Card, card1: Card, duration: float = 0.3) -> Signal:
+	"""Reveal two cards simultaneously (face up with flip animation)."""
+	await flip(card0, true, duration)
+	await flip(card1, true, duration)
 	return _immediate()
 
 

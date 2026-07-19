@@ -160,11 +160,9 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - `_update_effect()` — shows Spy (frame 2) or General (frame 6) sprite ✅
 - **⚠️ Needs:** Connect pause overlay signals in `application.gd`, add `round_won` signal wiring for stats
 
-#### ⚠️ `animator/animator.gd` — PARTIALLY COMPLETE (reveal/resolve inline in main.gd)
-- ✅ Has: `delay()`, `flip()`, `move_card()`, `flash()`, `kill_tweens()`
-- ❌ Missing from plan: `reveal_cards(card0, card1)`, `show_effect(player_idx, effect_type)`, `show_result(result_text, duration)`
-- ⚡ **Design note:** Reveal logic implemented inline in `main.gd._start_reveal()` rather than as animator methods — acceptable tradeoff
-- ❌ **Bug:** `reveal_hand(p: Player, ...)` references deleted `Player` type — should be removed or refactored
+#### ✅ `animator/animator.gd` — COMPLETE (reveal/resolve inline in main.gd)
+- ✅ Has: `delay()`, `flip()`, `reveal_cards(card0, card1)`, `move_card()`, `flash()`, `kill_tweens()`
+- ❌ Missing from plan: `show_effect(player_idx, effect_type)`, `show_result(result_text, duration)`
 
 #### ✅ Pause overlay — EXISTS and connected (with bugs)
 - `pause/pause.gd` has signals: `resume_pressed`, `stats_pressed`, `help_pressed`, `exit_pressed` ✅
@@ -174,14 +172,12 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 
 ---
 
-#### Phase 3 Bugs to Fix (before marking ✅)
+#### Phase 3 Remaining Bugs (4 of 8 fixed: #1 game_over, #2 game_logic, #4 animator, #5 removed)
 | # | File | Issue | Priority |
 |---|------|-------|----------|
-| 1 | `application.gd:32` | References `_main.round_won.disconnect()` — no `round_won` signal in `Main` | High |
-| 2 | `application.gd:100` | References `_main.interrupted = true` — no such property in `Main` | High |
-| 3 | `application.gd:139-148` | `_on_round_won()` handler exists but signal never emitted — dead code | Medium |
-| 4 | `animator.gd` | `reveal_hand(p: Player)` references deleted `Player` type | High |
-| 5 | `game_over.gd:8` | `@onready var rounds_2: Label = $Rounds2` — scene has `Rounds0`, not `Rounds2` | High |
+| 6 | `application.gd:32` | `_main.round_won.disconnect()` — no `round_won` signal | High |
+| 7 | `application.gd:100` | `_main.interrupted = true` — no such property | High |
+| 8 | `application.gd:139-148` | `_on_round_won()` handler — dead code | Medium |
 
 ### Phase 4: Polish
 - **Auto-advance** — 1-2s pause between rounds, button press to skip. Shorter for AI vs AI mode.
@@ -266,7 +262,7 @@ godot/                          ← Cheaters project adapted for Braverats
 ├── deck/                       ⚠️ Infrastructure exists, needs new method
 │   ├── deck.gd                 ✅ Has prepare_braverats() + prepare_cheaters() (cleanup needed)
 │   └── deck.tscn               ✅ Sprite2D + card_scene export
-├── animator/                   ⚠️ Singleton: delay, flip, move_card, flash (reveal_hand references deleted Player)
+├── animator/                   ✅ Singleton: delay, flip, reveal_cards, move_card, flash
 │   ├── animator.gd
 │   └── animator.tscn
 ├── digit_sprite/               ✅ Digit display for labels/buttons
@@ -305,7 +301,7 @@ Documented in `main/game_logic.gd`. Critical order:
 6. Value comparison (after nullification)
 7. Assassin invert (lowest wins, doesn't override Lady/Prince)
 8. Spy/General effect flags (carried to next round)
-9. Counsellor (2 pts if won)
+9. Chancellor (2 pts if won)
 10. Same-card handling (Jester→hold, General→both get +2, others→tie P0 wins)
 
 **Key interactions to test:**
@@ -314,7 +310,7 @@ Documented in `main/game_logic.gd`. Critical order:
 - Prince vs Assassin (Prince wins)
 - Magician nullifies effects but NOT General's +2
 - Both Spies → both get effect (implicit, not cancelled)
-- Both Counsellors → each gets 2 pts if resolved later
+- Both Chancellors → each gets 2 pts if resolved later
 - General +2 persists and is not nullifiable by subsequent Magician
 
 ### ✅ Known Bugs — FIXED
@@ -329,16 +325,15 @@ Documented in `main/game_logic.gd`. Critical order:
 
 ### Bug 8: Phase 3 Verification — NEED FIX
 
-| # | File | Line | Issue | Fix |
-|---|------|------|-------|-----|
-| 8 | `game_over.gd` | 8 | `@onready var rounds_2: Label = $Rounds2` — scene has `Rounds0`, not `Rounds2` | Change `$Rounds2` to `$Rounds0` |
-| 9 | `game_logic.gd` | ~130-131 | `GameState.held_cards0.clear()` and `GameState.held_cards1.clear()` — `held_cards` are `Card`, not Arrays | Change `.clear()` to `= null` |
-| 10 | `animator.gd` | ~38 | `reveal_hand(p: Player)` references deleted `Player` type | Remove method or replace with `reveal_cards(card0, card1)` |
-| 11 | `application.gd` | 32 | `_main.round_won.disconnect()` — no `round_won` signal exists in `Main` | Remove this line |
-| 12 | `application.gd` | 100 | `_main.interrupted = true` — no such property in `Main` | Remove or replace with proper cleanup |
-| 13 | `application.gd` | 139-148 | `_on_round_won()` handler exists but signal never emitted | Remove or connect signal |
-| 14 | `card.gd` | - | Uses `Counsellor` but plan card reference says `Chancellor` | Consider renaming for consistency |
-| 15 | `help.tscn` | - | Still has Cheaters cards (Guard/Priest/Baron) not Braverats cards | Replace with Braverats card descriptions |
+Fixed so far: #8 (`game_over.gd` rounds_2→Rounds0), #9 (`game_logic.gd` clear→null), #10 (`animator.gd` reveal_hand→reveal_cards)
+
+| # | File | Line | Issue | Status |
+|---|------|------|-------|--------|
+| 11 | `application.gd` | 32 | `_main.round_won.disconnect()` — no `round_won` signal | 🔴 Open |
+| 12 | `application.gd` | 100 | `_main.interrupted = true` — no such property | 🔴 Open |
+| 13 | `application.gd` | 139-148 | `_on_round_won()` handler — dead code | 🟡 Medium |
+| ~~14~~ | ~~`card.gd`~~ | - | ~~Uses `Counsellor` but plan says `Chancellor`~~ | ~~FIXED~~ |
+| 15 | `help.tscn` | - | Still has Cheaters cards (Guard/Priest/Baron) | 🟡 Medium |
 
 ---
 
@@ -357,4 +352,4 @@ Documented in `main/game_logic.gd`. Critical order:
 
 ---
 
-*Plan last updated: 2026-07-19 (Grill session)*
+*Plan last updated: 2026-07-20 (Phase 3 verification + bug fixes)*

@@ -106,7 +106,7 @@ static func _evaluate(my_card: Card, opp_card: Card, player_idx: int, gs: GameSt
 	if (player_idx == 0 and result == RoundResult.Value.PLAYER0_WINS) or \
 	   (player_idx == 1 and result == RoundResult.Value.PLAYER1_WINS):
 		var winner_card := my_card if player_idx == 0 else opp_card
-		if winner_card.power == Card.Power.Counsellor:
+		if winner_card.power == Card.Power.Chancellor:
 			score += 1.0  # Bonus for knowing Chancellor wins 2 pts
 
 	# Penalize playing against a known strong opponent card
@@ -121,6 +121,6 @@ static func _evaluate(my_card: Card, opp_card: Card, player_idx: int, gs: GameSt
 
 static func _get_points(card: Card, gs: GameState) -> float:
 	"""Get points awarded for winning with a given card."""
-	if card.power == Card.Power.Counsellor:
+	if card.power == Card.Power.Chancellor:
 		return 2.0
 	return 1.0

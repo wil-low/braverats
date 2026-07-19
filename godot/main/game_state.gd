@@ -52,8 +52,8 @@ var unrealized: Array[int] = [0, 0]
 ## Accumulated held round points (count of Jester-nullified rounds)
 var held_rounds: int = 0
 
-## Counsellor bonus points (added to score when round is won)
-var counsellor_points: Array[int] = [0, 0]
+## Chancellor bonus points (added to score when round is won)
+var chancellor_points: Array[int] = [0, 0]
 
 ## Pending effects carried between rounds:
 ##   effects[player_idx][effect_power] = bool

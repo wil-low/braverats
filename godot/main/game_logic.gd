@@ -21,7 +21,7 @@ extends RefCounted
 #    Does NOT override Prince or Lady.
 # 8. Spy effect flag: Next round, opponent reveals first (carried forward).
 # 9. General effect flag: Next card gets +2 (carried forward, not nullifiable).
-# 10. Counsellor: Counts as 2 points if round is won.
+# 10. Chancellor: Counts as 2 points if round is won.
 
 # ─── Core Functions ─────────────────────────────────────────────────────────
 
@@ -114,12 +114,12 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 	if card1.power == Card.Power.Spy:
 		GameState.effects[1][Card.Power.Spy] = true
 
-	# ─── Step 8: Counsellor tracking ─────────────────────────────────────
-	# Counsellor counts as 2 points if this player wins the round
-	if comparison == 1 and card0.power == Card.Power.Counsellor:
-		GameState.counsellor_points[0] += 2
-	if comparison == -1 and card1.power == Card.Power.Counsellor:
-		GameState.counsellor_points[1] += 2
+	# ─── Step 8: Chancellor tracking ─────────────────────────────────────
+	# Chancellor counts as 2 points if this player wins the round
+	if comparison == 1 and card0.power == Card.Power.Chancellor:
+		GameState.chancellor_points[0] += 2
+	if comparison == -1 and card1.power == Card.Power.Chancellor:
+		GameState.chancellor_points[1] += 2
 
 	# ─── Return result ───────────────────────────────────────────────────
 	match comparison:
@@ -174,7 +174,7 @@ static func new_game() -> void:
 	GameState.scores = [0, 0]
 	GameState.unrealized = [0, 0]
 	GameState.held_rounds = 0
-	GameState.counsellor_points = [0, 0]
+	GameState.chancellor_points = [0, 0]
 	GameState.effects = [[], []]
 	for i in 2:
 		GameState.effects[i] = {Card.Power.Spy: false, Card.Power.General: false}
@@ -183,5 +183,5 @@ static func new_game() -> void:
 	GameState.round_count = 0
 	GameState.round_history.clear()
 	GameState.pending_cmd = false
-	GameState.held_cards0.clear()
-	GameState.held_cards1.clear()
+	GameState.held_cards0 = null
+	GameState.held_cards1 = null
