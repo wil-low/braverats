@@ -13,6 +13,7 @@ Card ai_move(GameState *state, uint8_t my_idx, Card opponent_move) {
             // first card is random
             return state->_players[my_idx]._hand._items[rand() % hand_size];
         }
+        bool is_spy = opponent_move != UnknownCard;
         uint8_t opp_idx = PLAYER_COUNT - 1 - my_idx;
         int8_t outcome[CardCount][RR_Result_Count];
         for (uint8_t me = 0; me < hand_size; ++me) {
@@ -25,7 +26,7 @@ Card ai_move(GameState *state, uint8_t my_idx, Card opponent_move) {
             for (uint8_t opp = 0; opp < state->_players[opp_idx]._hand._count;
                  ++opp) {
                 Card opp_card = state->_players[opp_idx]._hand._items[opp];
-                if (opponent_move != UnknownCard && opponent_move != opp_card)
+                if (is_spy && opponent_move != opp_card)
                     continue;
                 *(my_idx == 0 ? &p1_card : &p0_card) = opp_card;
                 GameState new_state = resolve_round(state, p0_card, p1_card);
@@ -56,7 +57,7 @@ Card ai_move(GameState *state, uint8_t my_idx, Card opponent_move) {
                 if (my_card == Spy)
                     eval++;
                 evals[me] = eval;
-                // render_eval(my_card, eval);
+                // render_eval("eval1", my_card, eval);
                 if (eval > max_eval)
                     max_eval = eval;
                 if (eval < min_eval)
@@ -64,14 +65,18 @@ Card ai_move(GameState *state, uint8_t my_idx, Card opponent_move) {
             }
             uint8_t sum = 0;
             for (uint8_t i = 0; i < hand_size; ++i) {
-                if (evals[i] >= 0)
+                if (evals[i] > 0)
                     evals[i] = (evals[i] - min_eval) * 4 + 1;
                 else
-                    evals[i] = (evals[i] - min_eval) + 1;
+                    evals[i] = is_spy ? 0 : evals[i] - min_eval + 1;
                 sum += evals[i];
             }
+            if (sum == 0)
+                sum = 1;
             for (uint8_t i = 0; i < hand_size; ++i) {
                 evals[i] = evals[i] * 127 / sum;
+                // Card my_card = state->_players[my_idx]._hand._items[i];
+                // render_eval("eval2", my_card, evals[i]);
             }
             uint8_t rmove = rand() % 127;
             sum = 0;
@@ -106,7 +111,6 @@ Card ai_move(GameState *state, uint8_t my_idx, Card opponent_move) {
         return result;
     }
     default: // Level_1
-        (void)opponent_move;
         return state->_players[my_idx]._hand._items[rand() % hand_size];
     }
     return UnknownCard; // never reach here

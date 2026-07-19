@@ -106,8 +106,8 @@ void render_outcome(Card p0_card, Card p1_card, GameState *state,
            WINNER_NAMES[winner]);
 }
 
-void render_eval(Card card, int8_t eval) {
-    printf("Eval %s: %4d\n", SHORT_NAMES[card], eval);
+void render_eval(const char *text, Card card, int8_t eval) {
+    printf("%s %s: %4d\n", text, SHORT_NAMES[card], eval);
 }
 
 #ifdef CSV_OUTPUT

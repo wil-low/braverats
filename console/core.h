@@ -15,10 +15,10 @@
 
 typedef enum {
     Jester = 0,
-    Princess,
+    Lady,
     Spy,
     Assassin,
-    Minister,
+    Chancellor,
     Magician,
     General,
     Prince,
@@ -39,7 +39,7 @@ typedef enum {
 typedef struct {
     uint8_t _count;
     Card _items[CardCount];
-} Deck;
+} Pile;
 
 typedef enum {
     Human = 0,
@@ -50,7 +50,7 @@ typedef enum {
 
 typedef struct {
     AILevel _level;
-    Deck _hand;
+    Pile _hand;
     Card _effect;
     uint8_t _score;
     uint16_t _victory_count;
