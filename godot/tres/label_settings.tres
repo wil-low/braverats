@@ -1,0 +1,9 @@
+[gd_resource type="LabelSettings" format=3 uid="uid://bqe2prdrlv84l"]
+
+[ext_resource type="FontFile" uid="uid://d3c67v57xilth" path="res://Gamebuino.ttf" id="1_x2iip"]
+
+[resource]
+line_spacing = 0.0
+font = ExtResource("1_x2iip")
+font_size = 7
+font_color = Color(0, 0, 0, 1)
