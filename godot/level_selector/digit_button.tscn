@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://bupgluwgnp7vr"]
+
+[ext_resource type="Script" uid="uid://c3q44s47esjne" path="res://level_selector/digit_button.gd" id="1_276a2"]
+[ext_resource type="PackedScene" uid="uid://duu00tu6jeqix" path="res://digit_sprite/digit_sprite.tscn" id="1_vts8j"]
+
+[node name="DigitButton" type="TextureButton" unique_id=735065744]
+offset_right = 9.0
+offset_bottom = 9.0
+ignore_texture_size = true
+script = ExtResource("1_276a2")
+
+[node name="Sprite" parent="." unique_id=1239470012 instance=ExtResource("1_vts8j")]
+position = Vector2(3, 2)
+hframes = 16

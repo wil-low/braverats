@@ -1,0 +1,116 @@
+[gd_scene format=3 uid="uid://cnutq3ty1kcof"]
+
+[ext_resource type="Script" uid="uid://h6phrf7dvr04" path="res://pause/pause.gd" id="1_qhaht"]
+[ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="5_m0fkg"]
+
+[node name="Pause" type="Node2D" unique_id=1945187376]
+script = ExtResource("1_qhaht")
+metadata/_edit_vertical_guides_ = [84.0, 42.0]
+metadata/_edit_horizontal_guides_ = [48.0]
+
+[node name="ResumeLabel" type="Label" parent="." unique_id=527095475]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 27.0
+offset_top = 11.0
+offset_right = 59.0
+offset_bottom = 17.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "RESUME"
+label_settings = ExtResource("5_m0fkg")
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="ResumeLabel" unique_id=1126956716]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="StatsLabel" type="Label" parent="." unique_id=45225058]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 27.0
+offset_top = 19.0
+offset_right = 59.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "STATS"
+label_settings = ExtResource("5_m0fkg")
+horizontal_alignment = 1
+
+[node name="StatsButton" type="Button" parent="StatsLabel" unique_id=677014410]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="HelpLabel" type="Label" parent="." unique_id=1866401660]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 27.0
+offset_top = 27.0
+offset_right = 59.0
+offset_bottom = 33.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "HELP"
+label_settings = ExtResource("5_m0fkg")
+horizontal_alignment = 1
+
+[node name="HelpButton" type="Button" parent="HelpLabel" unique_id=1772091808]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="ExitLabel" type="Label" parent="." unique_id=276000493]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 27.0
+offset_top = 35.0
+offset_right = 59.0
+offset_bottom = 41.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "EXIT"
+label_settings = ExtResource("5_m0fkg")
+horizontal_alignment = 1
+
+[node name="ExitButton" type="Button" parent="ExitLabel" unique_id=169342193]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[connection signal="pressed" from="ResumeLabel/ResumeButton" to="." method="_on_resume_button_pressed"]
+[connection signal="pressed" from="StatsLabel/StatsButton" to="." method="_on_stats_button_pressed"]
+[connection signal="pressed" from="HelpLabel/HelpButton" to="." method="_on_help_button_pressed"]
+[connection signal="pressed" from="ExitLabel/ExitButton" to="." method="_on_exit_button_pressed"]

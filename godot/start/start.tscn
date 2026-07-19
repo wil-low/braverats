@@ -1,0 +1,125 @@
+[gd_scene format=3 uid="uid://c37whatool5hs"]
+
+[ext_resource type="Script" uid="uid://cegfg78d2iqjs" path="res://start/start.gd" id="1_pgi65"]
+[ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="2_s0q5u"]
+
+[node name="Start" type="Node2D" unique_id=1602353910]
+script = ExtResource("1_pgi65")
+metadata/_edit_vertical_guides_ = [84.0, 42.0]
+metadata/_edit_horizontal_guides_ = [48.0, 12.0, 24.0, 36.0]
+
+[node name="Title" type="Label" parent="." unique_id=165448473]
+offset_left = 10.0
+offset_top = 4.0
+offset_right = 76.0
+offset_bottom = 10.0
+text = "BRAVERATS!"
+label_settings = ExtResource("2_s0q5u")
+horizontal_alignment = 1
+
+[node name="PlayLabel" type="Label" parent="." unique_id=454541843]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = 16.0
+offset_right = 61.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "PLAY"
+label_settings = ExtResource("2_s0q5u")
+horizontal_alignment = 1
+
+[node name="PlayButton" type="Button" parent="PlayLabel" unique_id=146084697]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="SettingsLabel" type="Label" parent="." unique_id=1464790290]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = 24.0
+offset_right = 61.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "SETTINGS"
+label_settings = ExtResource("2_s0q5u")
+horizontal_alignment = 1
+
+[node name="SettingsButton" type="Button" parent="SettingsLabel" unique_id=103483315]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="StatsLabel" type="Label" parent="." unique_id=906619070]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = 32.0
+offset_right = 61.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "STATS"
+label_settings = ExtResource("2_s0q5u")
+horizontal_alignment = 1
+
+[node name="StatsButton" type="Button" parent="StatsLabel" unique_id=1897316701]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="HelpLabel" type="Label" parent="." unique_id=1412098535]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = 40.0
+offset_right = 61.0
+offset_bottom = 46.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "HELP"
+label_settings = ExtResource("2_s0q5u")
+horizontal_alignment = 1
+
+[node name="HelpButton" type="Button" parent="HelpLabel" unique_id=600397236]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[connection signal="pressed" from="PlayLabel/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="SettingsLabel/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="StatsLabel/StatsButton" to="." method="_on_stats_button_pressed"]
+[connection signal="pressed" from="HelpLabel/HelpButton" to="." method="_on_help_button_pressed"]

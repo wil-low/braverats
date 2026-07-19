@@ -1,0 +1,191 @@
+[gd_scene format=3 uid="uid://c5r2e1aj3mjeo"]
+
+[ext_resource type="PackedScene" uid="uid://c1q7doxejnam" path="res://player/player.tscn" id="1_53q0u"]
+[ext_resource type="Script" uid="uid://bxidm2wlh52rf" path="res://main/main.gd" id="1_xwkvk"]
+[ext_resource type="PackedScene" uid="uid://cex2qhx27kx6p" path="res://deck/deck.tscn" id="2_pjrb6"]
+[ext_resource type="PackedScene" uid="uid://d0q3mfx7nmlf5" path="res://card/card.tscn" id="5_kfbq2"]
+[ext_resource type="Texture2D" uid="uid://baf5mpfexuvjq" path="res://main/menu.png" id="15_5xyti"]
+[ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="16_n3o0a"]
+
+[node name="Main" type="Node2D" unique_id=287543303]
+script = ExtResource("1_xwkvk")
+metadata/_edit_horizontal_guides_ = [24.0, 48.0]
+metadata/_edit_vertical_guides_ = [84.0, 42.0]
+
+[node name="Player0" parent="." unique_id=1231112012 instance=ExtResource("1_53q0u")]
+position = Vector2(0, 13)
+
+[node name="Player1" parent="." unique_id=1290894075 instance=ExtResource("1_53q0u")]
+position = Vector2(50, -21)
+idx = 1
+
+[node name="DiscardMarker" type="Marker2D" parent="." unique_id=1639788791]
+position = Vector2(94, 19)
+
+[node name="Deck" parent="." unique_id=535832791 instance=ExtResource("2_pjrb6")]
+position = Vector2(-10, 16)
+
+[node name="Score1" type="Label" parent="." unique_id=600000333]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 70.0
+offset_top = 13.0
+offset_right = 74.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "0"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="Plus1" type="Label" parent="." unique_id=2095367326]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 74.0
+offset_top = 13.0
+offset_right = 78.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "0"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="Table" type="Node2D" parent="." unique_id=1655601236]
+position = Vector2(-26, 11)
+
+[node name="PlayLabel" type="Label" parent="Table" unique_id=578391549]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 32.0
+offset_top = 34.0
+offset_right = 52.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "PLAY"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="Play" type="Button" parent="Table/PlayLabel" unique_id=1919059526]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = -1.0
+offset_right = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="TableRank" type="Label" parent="Table" unique_id=1868110485]
+offset_left = 40.0
+offset_top = 22.0
+offset_right = 44.0
+offset_bottom = 28.0
+label_settings = ExtResource("16_n3o0a")
+
+[node name="RankFrame" type="Sprite2D" parent="Table/TableRank" unique_id=97814393]
+position = Vector2(-2, -2)
+offset = Vector2(3.5, 4.5)
+
+[node name="SelectRank" type="Button" parent="Table/TableRank" unique_id=600000222]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -3.0
+offset_right = 3.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="CentralDisplay" parent="Table" unique_id=89891141 instance=ExtResource("2_pjrb6")]
+position = Vector2(26, 20)
+
+[node name="Card" parent="Table/CentralDisplay" unique_id=1111454611 instance=ExtResource("5_kfbq2")]
+
+[node name="LastDeck" parent="Table" unique_id=999888777 instance=ExtResource("2_pjrb6")]
+position = Vector2(50, 20)
+fan_offset = 6
+
+[node name="Card" parent="Table/LastDeck" unique_id=1040006972 instance=ExtResource("5_kfbq2")]
+
+[node name="RankSelector" parent="." unique_id=2051074170]
+visible = false
+position = Vector2(6, 17)
+
+[node name="MessageBox" type="ColorRect" parent="." unique_id=499735349]
+visible = false
+offset_left = 10.0
+offset_top = 20.0
+offset_right = 74.0
+offset_bottom = 29.0
+
+[node name="MessageLabel" type="Label" parent="MessageBox" unique_id=1684390544]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -23.0
+offset_top = -3.0
+offset_right = 23.0
+offset_bottom = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "KNOCK LOST"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="MessageButton" type="Button" parent="MessageBox" unique_id=848743360]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="DealAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=248928592]
+volume_db = -10.0
+
+[node name="InactiveAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=2115873630]
+volume_db = -10.0
+
+[node name="RoundOverAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=1524916702]
+volume_db = -10.0
+
+[node name="RoundWonAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=1523628593]
+
+[node name="GameOverAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=421726183]
+volume_db = -10.0
+
+[node name="GameWonAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=505401809]
+
+[node name="MenuButton" type="TextureButton" parent="." unique_id=1431577744]
+offset_left = 77.0
+offset_top = 22.0
+offset_right = 82.0
+offset_bottom = 27.0
+texture_normal = ExtResource("15_5xyti")
+
+[node name="AnimationLayer" type="Node2D" parent="." unique_id=150676236]
+
+[connection signal="pressed" from="Table/PlayLabel/Play" to="." method="_on_discard_pressed"]
+[connection signal="pressed" from="Table/TableRank/SelectRank" to="." method="_on_select_rank_pressed"]
+[connection signal="pressed" from="MenuButton" to="." method="_on_menu_button_pressed"]

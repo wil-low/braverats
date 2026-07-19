@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://duu00tu6jeqix"]
+
+[ext_resource type="Texture2D" uid="uid://mcerqvsiicl4" path="res://digit_sprite/digits.png" id="1_kav66"]
+
+[node name="DigitSprite" type="Sprite2D" unique_id=1239470012]
+texture = ExtResource("1_kav66")
+offset = Vector2(1.5, 2.5)
+hframes = 15
