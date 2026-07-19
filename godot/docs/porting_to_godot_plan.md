@@ -112,13 +112,57 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 
 ---
 
-### Phase 1: Core Logic (Pure Game Rules)
-- **`card.gd`** — Redefine: Braverats enum (Jester=0 through Prince=7), POWER_NAMES array, power value property. Update `_update_display()` to use character frame index = power value. Keep Area2D structure for click detection.
-- **`deck/deck.gd`** — Add `prepare_braverats()`: 8 unique cards per player (16 total), shuffle per player's hand. Keep existing pop()/clear()/shift_to() methods.
-- **`round_result.gd`** — New enum: `Player0Wins`, `Player1Wins`, `Hold` (enum values 0, 1, 2).
-- **`game_logic.gd`** — New pure-logic script: port C++ `resolve_round()`, `move_cards()`, `check_winner()`, `new_game()`. Input/output via data classes. No Godot node references. Testable with unit tests.
-- **`player/ai.gd`** — Adapt: `select_card(opponent_known_cards, my_hand, ai_level)` → returns Card. L1: random. L2: simulate all opponent cards, score expected outcome, probabilistic selection.
-- **`game_state.gd`** (autoload) — Centralized state: `_players[2]`, `_rounds[8]`, `_round_count`, `_scores[2]`, `_unrealized[2]`, `_effects[2]` (Spy/General flags), `_pending_cmd`. Methods: `new_game()`, `play_card(player_idx, card)`, `resolve_current_round()`, `advance_round()`.
+### Phase 1: Core Logic (Pure Game Rules) — ✅ COMPLETE
+
+> ⚠️ All files exist in `main/` directory, not at project root. File references below are relative to `godot/`.
+
+### ✅ `card/card.gd` — Braverats enum, POWER_NAMES, power property
+- Power enum (Jester=0 through Prince=7) ✅
+- POWER_NAMES array ✅
+- `power` property with setter ✅
+- `power_name` computed property ✅
+- ⚠️ `_update_display()` does NOT set character sprite frame from power value — only displays name text
+- ⚠️ `card.tscn` has `Character` Sprite2D (hframes=8) but `card.gd` does not reference it
+- ❌ `set_power(power)` not exposed as public method for setting card type externally
+
+### ✅ `main/round_result.gd` — Round result enum
+- `Value` enum: `PLAYER0_WINS`, `PLAYER1_WINS`, `HOLD` ✅
+- Helper methods: `is_player_win()`, `is_hold()`, `winner_idx()`, `to_string()` ✅
+
+### ✅ `main/game_logic.gd` — Pure game logic
+- `resolve_round(card0, card1)` — implements interaction logic ✅ (⚠️ has evaluation order bug — see note below)
+- `move_cards(source, target)` — deck operations ✅
+- `check_winner()` — game end detection ✅
+- `new_game()` — state reset ✅
+- ⚠️ References `GameState` singleton directly (not pure — needs GameState as autoload)
+
+### ✅ `main/game_state.gd` — Centralized state
+- Scores, held_rounds, counsellor_points, effects, round_history ✅
+- `hold_card0()`, `hold_card1()` ✅
+- `resolve_current_round()` — orchestrates resolution ✅
+- `check_winner()` delegation ✅
+- `is_spy_active()`, `is_general_active()`, `clear_effects()` ✅
+- ⚠️ Not registered as autoload (must be added in project settings)
+
+### ❌ `deck/deck.gd` — `prepare_braverats()` NOT implemented
+- Only `prepare_cheaters()` exists (35-card Cheaters deck)
+- Need: `prepare_braverats()` — 8 unique cards per player (16 total)
+
+### ❌ `player/player.gd` — Still Cheaters discard/challenge logic
+- Has `_execute_discard()`, `ai_discard()`, `ai_challenge()` — all Cheaters concepts
+- Need: Braverats card selection flow (select 1 card, play, resolve)
+
+### ❌ `player/ai.gd` — Still Cheaters AI
+- `select_discard()`, `should_challenge()` — Cheaters concepts
+- Need: `select_card(opponent_known_cards, my_hand, ai_level)` for Braverats
+
+### ❌ `player/move.gd` — Still Cheaters Move class
+- `Action` enum: Discard_1..Discard_3, Challenge — Braverats only needs card selection
+
+### ⚠️ `card/card.tscn` — Scene structure exists but wiring incomplete
+- Has `Character` Sprite2D (hframes=8, characters.png) but `card.gd` doesn't use it
+- Has `Value` Label — displays card name text (not power number)
+- Has `Back` Sprite2D (hframes=2, frame.png) — correct for face-up/down
 
 ### Phase 2: UI Layer (Adapt Cheaters Scenes)
 - **`card.gd`** — Update to use `characters.png` frame index (0-7) for character display. Map power value to frame. Back uses `frame.png` frame 1.
@@ -255,13 +299,14 @@ godot/                          ← Cheaters project adapted for Braverats
 
 ## Evaluation Order (Faithful to C++)
 
-Documented in `core/game_logic.gd`. Critical order:
+Documented in `main/game_logic.gd`. Critical order:
 1. General +2 (persistent, NOT nullifiable by Magician)
 2. Jester nullify (nullifies everything including Prince)
 3. Value comparison (after Jester, before Assassin)
 4. Assassin invert (after other effects, before Spy/General flags)
 5. Spy/General effect flags
 6. Prince instant win (beats Assassin, loses to Lady)
+7. Counsellor (2 pts if won) — resolved in GameState after score update
 
 **Key interactions to test:**
 - Jester vs all 8 cards (16 cases including mirror)
@@ -269,8 +314,23 @@ Documented in `core/game_logic.gd`. Critical order:
 - Prince vs Assassin (Prince wins)
 - Magician nullifies effects but NOT General's +2
 - Both Spies → both get effect (implicit, not cancelled)
-- Both Chancellors → each gets 2 pts if resolved later
+- Both Counsellors → each gets 2 pts if resolved later
 - General +2 persists and is not nullifiable by subsequent Magician
+
+### ⚠️ Known Bugs in `game_logic.gd`
+
+**Bug 1: Evaluation order — Lady-vs-Prince checked before Jester nullify**
+Current code checks Lady-vs-Prince at step 2 (before Jester at step 3). Per rules, Jester must
+nullify first. If both players play Jester, the round should be HOLD, but Lady-vs-Prince check
+would return PLAYER0_WINS if Player0 plays Lady and Player1 plays Prince.
+**Fix:** Move Jester check before Lady-vs-Prince check.
+
+**Bug 2: Magician nullifies General's +2**
+Current code applies General +2 to power values before Magician nullification, so Magician beats
+General (0 vs 2). Per rules, Magician nullifies opponent's card effect but General's +2 is
+persistent and not nullifiable.
+**Fix:** Check Magician nullification before applying General's +2 to current card. General's +2
+should only flag for next round, not affect current comparison when opponent plays Magician.
 
 ---
 
