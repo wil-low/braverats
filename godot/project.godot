@@ -18,6 +18,8 @@ config/icon="uid://d03plnenwr1sa"
 [autoload]
 
 Animator="*uid://dn44wqmq5axw5"
+GameLogic="*uid://bi03811swkj5u"
+GameState="*uid://duqxicida6hwj"
 
 [display]
 

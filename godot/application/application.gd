@@ -22,24 +22,6 @@ func _ready() -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		Engine.print_to_stdout = false
 
-	var levels: Array[Player.AI_Level] = [
-		Player.AI_Level.Human,
-		Player.AI_Level.Level_1,
-		Player.AI_Level.Level_2,
-		Player.AI_Level.Level_3,
-		]
-
-	if speed_run:
-		levels = [
-			Player.AI_Level.Human,
-			Player.AI_Level.Level_1,
-			Player.AI_Level.Level_2,
-			Player.AI_Level.Level_3,
-			]
-			
-	for i in _main._players.size():
-		_main._players[i].ai_level = levels[i]
-
 	if speed_run:
 		for i in AudioServer.bus_count:
 			AudioServer.set_bus_mute(i, true)
@@ -56,8 +38,8 @@ func _ready() -> void:
 
 func save_config() -> void:
 	var config = ConfigFile.new()
-	for i in _main._players.size():
-		config.set_value("AI_Level", "P" + str(i), _main._players[i].ai_level)
+	for i in GameState.ai_levels.size():
+		config.set_value("AI_Level", "P" + str(i), GameState.ai_levels[i])
 	config.set_value("Gameplay", "speed", _level_selector._speed_level.level)
 	config.set_value("Gameplay", "compact", _level_selector._compact)
 	config.set_value("Gameplay", "totals_and_wins", _stats._totals_and_wins)
@@ -72,23 +54,22 @@ func load_config() -> bool:
 	if err != OK:
 		return false
 
-	for i in _main._players.size():
+	for i in 2:
 		var ai_level = config.get_value("AI_Level", "P" + str(i))
 		if ai_level != null:
-			_main._players[i].ai_level = ai_level
+			GameState.ai_levels[i] = ai_level as GameState.AI_Level
 
 	var speed = clamp(config.get_value("Gameplay", "speed"), SpeedLevel._min_speed, SpeedLevel._max_speed)
 	var compact = config.get_value("Gameplay", "compact", false)
-	_level_selector.set_levels(_main._players, compact, speed)
+	_level_selector.set_levels(GameState.ai_levels, compact, speed)
 	_stats._totals_and_wins = config.get_value("Gameplay", "totals_and_wins", [])
 	if _stats._totals_and_wins == []:
 		_stats._on_reset_button_pressed()
 	return true
 
 
-func _on_level_selector_levels_changed(levels: Array[Player.AI_Level], compact: bool, speed: int) -> void:
-	for i in _main._players.size():
-		_main._players[i].ai_level = levels[i]
+func _on_level_selector_levels_changed(levels: Array[GameState.AI_Level], compact: bool, speed: int) -> void:
+	GameState.ai_levels = levels
 	Animator._speed = pow(2, speed)
 	save_config()
 	_start.show()
@@ -155,11 +136,11 @@ func _on_pause_help_pressed() -> void:
 	_help.show()
 
 
-func _on_round_won(level: Player.AI_Level) -> void:
-	_stats._totals_and_wins[2 * level] = clampi(_stats._totals_and_wins[2 * level] + 1, 0, 99999)
+func _on_round_won(_level: int) -> void:
+	_stats._totals_and_wins[2 * _level] = clampi(_stats._totals_and_wins[2 * _level] + 1, 0, 99999)
 	pass
 
 
-func _on_round_finished(level: Player.AI_Level) -> void:
-	_stats._totals_and_wins[2 * level + 1] = clampi(_stats._totals_and_wins[2 * level + 1] + 1, 0, 99999)
+func _on_round_finished(_level: int) -> void:
+	_stats._totals_and_wins[2 * _level + 1] = clampi(_stats._totals_and_wins[2 * _level + 1] + 1, 0, 99999)
 	pass

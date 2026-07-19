@@ -114,27 +114,50 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 
 ### Phase 1: Core Logic (Pure Game Rules) — ✅ COMPLETE
 
-> ⚠️ All files exist in `main/` directory, not at project root. File references below are relative to `godot/`.
+> All files in `main/` directory. File references relative to `godot/`.
 
 ### ✅ `card/card.gd` — Braverats enum, POWER_NAMES, power property
 - Power enum (Jester=0 through Prince=7) ✅
 - POWER_NAMES array ✅
 - `power` property with setter ✅
 - `power_name` computed property ✅
-- ⚠️ `_update_display()` does NOT set character sprite frame from power value — only displays name text
-- ⚠️ `card.tscn` has `Character` Sprite2D (hframes=8) but `card.gd` does not reference it
-- ❌ `set_power(power)` not exposed as public method for setting card type externally
+- ⚠️ `_update_display()` does NOT set `Character` sprite frame — only displays name text
+- ⚠️ `card.tscn` has `Character` Sprite2D (hframes=8, characters.png) but `card.gd` doesn't reference it
+- ❌ `set_power(power)` not exposed as public method
 
 ### ✅ `main/round_result.gd` — Round result enum
 - `Value` enum: `PLAYER0_WINS`, `PLAYER1_WINS`, `HOLD` ✅
 - Helper methods: `is_player_win()`, `is_hold()`, `winner_idx()`, `to_string()` ✅
 
-### ✅ `main/game_logic.gd` — Pure game logic
-- `resolve_round(card0, card1)` — implements interaction logic ✅ (⚠️ has evaluation order bug — see note below)
+### ✅ `main/game_logic.gd` — Pure game logic (BUGS FIXED)
+- `resolve_round(card0, card1)` — corrected evaluation order ✅
+  - Jester now checked BEFORE Lady-vs-Prince (Bug 1 fixed)
+  - Magician nullifies opponent's effect but NOT General's +2 (Bug 2 fixed)
+  - General +2 only flags for NEXT round, never affects current comparison
 - `move_cards(source, target)` — deck operations ✅
 - `check_winner()` — game end detection ✅
 - `new_game()` — state reset ✅
-- ⚠️ References `GameState` singleton directly (not pure — needs GameState as autoload)
+- ⚠️ References `GameState` singleton (needs autoload registration)
+
+### ✅ `player/` — DELETED (all Cheaters concepts removed)
+- `player.gd`, `ai.gd`, `player.tscn` — all removed
+- Player identity (Human/AI level) moved to `GameState.ai_levels` array
+- `AI_Level` enum + `AI_LEVEL_NAMES` added to `GameState`
+
+### ✅ `level_selector/` — Updated to use `GameState.AI_Level`
+- `player_level.gd` — uses `GameState.AI_Level` enum
+- `level_selector.gd` — signal uses `Array[GameState.AI_Level]`
+
+### ✅ `application/application.gd` — Updated
+- `save_config()` / `load_config()` — uses `GameState.ai_levels`
+- `_on_round_won()` / `_on_round_finished()` — now take `int` player index
+
+### ⚠️ Remaining bugs (Phase 1 follow-up)
+- **Bug 3:** GameState not registered as autoload in project.godot
+- **Bug 4:** GameLogic not registered as autoload in project.godot
+- **Bug 5:** `card.gd` doesn't use `Character` sprite frame index
+- **Bug 6:** `card.gd` has redundant `_power` field + `power` property
+- **Bug 7:** `deck.gd` lacks `prepare_braverats()`
 
 ### ✅ `main/game_state.gd` — Centralized state
 - Scores, held_rounds, counsellor_points, effects, round_history ✅
@@ -159,6 +182,24 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 ### ❌ `player/move.gd` — Still Cheaters Move class
 - `Action` enum: Discard_1..Discard_3, Challenge — Braverats only needs card selection
 
+### ✅ `player/` — Deleted (all Cheaters concepts)
+- `player.gd` — removed: discard/challenge logic, Move, Memory, Player.State
+- `ai.gd` — removed: Cheaters AI strategies (select_discard, should_challenge)
+- `player.tscn` — removed: Cheaters player layout with hand/badge
+- `move.gd` — never existed (already deleted)
+- Player identity (Human/AI level) moved to `GameState.ai_levels` array
+- AI Level enum moved to `GameState.AI_Level` + `AI_LEVEL_NAMES`
+
+### ✅ `game_state.gd` — Centralized state + AI config
+- Scores, held_rounds, counsellor_points, effects, round_history ✅
+- `hold_card0()`, `hold_card1()` ✅
+- `resolve_current_round()` — orchestrates resolution ✅
+- `check_winner()` delegation ✅
+- `is_spy_active()`, `is_general_active()`, `clear_effects()` ✅
+- `ai_levels: Array[AI_Level]` — AI config for both players ✅
+- `AI_Level` enum + `AI_LEVEL_NAMES` constant ✅
+- ⚠️ Not registered as autoload (must be added in project settings)
+
 ### ⚠️ `card/card.tscn` — Scene structure exists but wiring incomplete
 - Has `Character` Sprite2D (hframes=8, characters.png) but `card.gd` doesn't use it
 - Has `Value` Label — displays card name text (not power number)
@@ -167,8 +208,8 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 ### Phase 2: UI Layer (Adapt Cheaters Scenes)
 - **`card.gd`** — Update to use `characters.png` frame index (0-7) for character display. Map power value to frame. Back uses `frame.png` frame 1.
 - **`main/main.tscn`** — Already adapted: Effect0/Effect1 for pending effects, Score0/Score1, Plus0/Plus1, Unrealized0/Unrealized1. Wire up labels to GameState.
-- **`player/player.gd`** — Adapt: remove Cheaters discard/challenge logic. New flow: hold 8 cards, select 1, play card → emit `card_played(card)` signal. Track effects (Spy, General).
-- **`level_selector/`** — Adapt: Player 0 selects Human/L1/L2, Player 1 selects L1/L2 only (Player 1 is always AI).
+- **`player/`** — Deleted (all Cheaters concepts). Braverats player is just a card hand layout: display cards, handle clicks, emit `card_played(card)` signal.
+- **`level_selector/`** — Updated: uses `GameState.AI_Level` now. Player 0 selects Human/L1/L2, Player 1 selects L1/L2 only.
 - **`game_over.tscn`** — New scene: winner announcement, final scores, round-by-round history (both cards, results), career victories, Play Again button.
 - **`help.tscn`** — New scene: per-card help descriptions (from original `ui.cpp`), how-to-play rules text.
 
@@ -197,10 +238,10 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 
 ### Implementation Order (Refined)
 
-1. **Pure logic** — `card.gd` (Braverats enum), `round_result.gd`, `game_logic.gd`, `game_state.gd` autoload
+1. **Pure logic** — `card.gd` (Braverats enum), `round_result.gd`, `game_logic.gd`, `game_state.gd` (with AI_Level enum) + autoloads
 2. **Deck & card UI** — `deck.gd` (prepare_braverats), `card.tscn` wiring (character frames), `card.gd` display logic
-3. **Player system** — `player.gd` (8-card hand, click-to-play), `player.tscn` layout (P0/P1)
-4. **AI integration** — `ai.gd` (L1 random, L2 evaluation), integrate into `main.gd`
+3. **Player system** — Deleted Cheaters `player.gd`/`ai.gd`. New: simple hand scene with click-to-play, no state logic
+4. **AI integration** — `ai.gd` (L1 random, L2 evaluation) — new implementation only
 5. **Game loop** — `main.gd` rewrite: deal → select → resolve → animate → advance → check winner
 6. **Scene wiring** — `application.gd` (Start→Game→GameOver→Pause flow), connect signals
 7. **Game over** — `game_over.tscn` (winner, history, stats)
@@ -249,7 +290,10 @@ godot/                          ← Cheaters project adapted for Braverats
 ├── stats/                      ✅ Win/loss stats (needs config path update)
 │   ├── stats.gd
 │   └── stats.tscn
-├── main/                       ⚠️ Layout done, script needs rewrite
+├── main/                       ⚠️ Core logic + layout
+│   ├── game_logic.gd           ✅ Pure game rules (resolve_round, check_winner, etc.)
+│   ├── game_state.gd           ✅ Centralized state + AI_Level enum (needs autoload)
+│   ├── round_result.gd         ✅ RoundResult enum
 │   ├── main.gd                 ❌ Cheaters game loop (rewrite for Braverats)
 │   ├── main.tscn               ✅ P0/P1 scores, Unrealized/Plus, Effect0/Effect1
 │   └── menu.png
@@ -258,11 +302,8 @@ godot/                          ← Cheaters project adapted for Braverats
 │   ├── card.tscn               ✅ Back(frame.png) + Character(characters.png) + Value
 │   ├── frame.png               ✅ 2 frames: face-up border / face-down
 │   └── characters.png          ✅ 8 frames: Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince
-├── player/                     ⚠️ Class exists, needs Braverats adaptation
-│   ├── player.gd               ❌ Cheaters discard/challenge logic
-│   ├── player.tscn             ⚠️ Has Hand+Card+Badge (needs layout update)
-│   ├── ai.gd                   ❌ Cheaters AI (adapt for card selection)
-│   └── move.gd                 ❌ Cheaters Move (needs update or replace)
+├── player/                     ✅ Deleted (all Cheaters concepts)
+│   └── (empty)                 All player logic moved to GameState
 ├── deck/                       ⚠️ Infrastructure exists, needs new method
 │   ├── deck.gd                 ⚠️ Has prepare_cheaters() (add prepare_braverats())
 │   └── deck.tscn               ✅ Sprite2D + card_scene export
@@ -279,11 +320,8 @@ godot/                          ← Cheaters project adapted for Braverats
 │   ├── rules.md
 │   ├── conventions.md
 │   └── invariants.md
-├── game_logic.gd               ❌ NEW: pure game rules
-├── round_result.gd             ❌ NEW: round result enum
 ├── game_over.tscn              ❌ NEW: end-of-game scene
 ├── help.tscn                   ❌ NEW: how-to-play + card encyclopedia
-├── game_state.gd (autoload)    ❌ NEW: centralized game state
 ├── audio_manager.gd (autoload) ❌ NEW: sound effects
 └── stats_manager.gd (autoload) ❌ NEW: ConfigFile persistence
 ```
@@ -300,13 +338,16 @@ godot/                          ← Cheaters project adapted for Braverats
 ## Evaluation Order (Faithful to C++)
 
 Documented in `main/game_logic.gd`. Critical order:
-1. General +2 (persistent, NOT nullifiable by Magician)
-2. Jester nullify (nullifies everything including Prince)
-3. Value comparison (after Jester, before Assassin)
-4. Assassin invert (after other effects, before Spy/General flags)
-5. Spy/General effect flags
-6. Prince instant win (beats Assassin, loses to Lady)
-7. Counsellor (2 pts if won) — resolved in GameState after score update
+1. General +2 (persistent flag for NEXT round, NOT current comparison)
+2. Magician nullify (nullifies opponent's effect, but NOT General's +2)
+3. Jester nullify (nullifies everything including Prince — Jester beats Magician)
+4. Lady-vs-Prince instant win (not nullifiable)
+5. Prince instant win (beats all except Lady and Assassin)
+6. Value comparison (after nullification)
+7. Assassin invert (lowest wins, doesn't override Lady/Prince)
+8. Spy/General effect flags (carried to next round)
+9. Counsellor (2 pts if won)
+10. Same-card handling (Jester→hold, General→both get +2, others→tie P0 wins)
 
 **Key interactions to test:**
 - Jester vs all 8 cards (16 cases including mirror)
@@ -317,20 +358,26 @@ Documented in `main/game_logic.gd`. Critical order:
 - Both Counsellors → each gets 2 pts if resolved later
 - General +2 persists and is not nullifiable by subsequent Magician
 
-### ⚠️ Known Bugs in `game_logic.gd`
+### ✅ Known Bugs — FIXED
 
-**Bug 1: Evaluation order — Lady-vs-Prince checked before Jester nullify**
-Current code checks Lady-vs-Prince at step 2 (before Jester at step 3). Per rules, Jester must
-nullify first. If both players play Jester, the round should be HOLD, but Lady-vs-Prince check
-would return PLAYER0_WINS if Player0 plays Lady and Player1 plays Prince.
-**Fix:** Move Jester check before Lady-vs-Prince check.
+**Bug 1 (FIXED):** Evaluation order — Jester now checked BEFORE Lady-vs-Prince. Jester nullifies everything including Prince, so Jester+Lady vs Prince→HOLD, not PLAYER0_WINS.
 
-**Bug 2: Magician nullifies General's +2**
-Current code applies General +2 to power values before Magician nullification, so Magician beats
-General (0 vs 2). Per rules, Magician nullifies opponent's card effect but General's +2 is
-persistent and not nullifiable.
-**Fix:** Check Magician nullification before applying General's +2 to current card. General's +2
-should only flag for next round, not affect current comparison when opponent plays Magician.
+**Bug 2 (FIXED):** Magician no longer nullifies General's +2. General only flags for next round. Magician nullifies opponent's card EFFECT but General's persistent +2 bypasses nullification.
+
+**Bug 3 (REMAINING):** GameState not registered as autoload in project.godot.
+**Fix:** Add `[autoload] GameState="*main/game_state.gd"` to project.godot.
+
+**Bug 4 (REMAINING):** GameLogic not registered as autoload in project.godot.
+**Fix:** Add `[autoload] GameLogic="*main/game_logic.gd"` to project.godot.
+
+**Bug 5 (REMAINING):** `card.gd` `_update_display()` doesn't use `Character` sprite frame index.
+**Fix:** Map `power` to `Character.sprite.frame` (0-7 for 8 card types).
+
+**Bug 6 (REMAINING):** `card.gd` uses `_power` as private field but also has a `power` property — redundant setter chain.
+**Fix:** Remove `_power` field, use `power` directly. Add explicit `set_power()` method.
+
+**Bug 7 (REMAINING):** `deck.gd` lacks `prepare_braverats()` — only has `prepare_cheaters()`.
+**Fix:** Add `prepare_braverats()` that creates 8 unique cards per player (16 total).
 
 ---
 

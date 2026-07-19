@@ -2,8 +2,8 @@ class_name Main
 extends Node2D
 
 signal menu_pressed
-signal round_won(level: Player.AI_Level)
-signal round_finished(level: Player.AI_Level)
+signal round_won(player_idx: int)
+signal round_finished(player_idx: int)
 signal save_stats
 
 @export var max_games: int = 1000

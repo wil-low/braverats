@@ -22,8 +22,8 @@
 | **Game rules** | `docs/rules.md` |
 | **Main game loop** | `main/main.gd` |
 | **Card scene** | `card/card.tscn` + `card/card.gd` |
-| **Player input** | `player/player.gd` |
-| **AI decision-making** | `player/ai.gd` + `player/ai_level_*.gd` |
+| **Player input** | `main/game_state.gd` (state) + new player hand scene (Phase 2) |
+| **AI decision-making** | `main/game_logic.gd` (pure logic) + new `ai.gd` (Phase 3) |
 | **Deck management** | `deck/deck.gd` |
 | **Animation** | `animator/animator.gd` |
 | **Scene navigation** | `application/application.gd` |

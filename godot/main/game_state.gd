@@ -1,4 +1,3 @@
-class_name GameState
 extends RefCounted
 
 ## Centralized game state for Braverats.
@@ -13,11 +12,26 @@ extends RefCounted
 ## 5. Move cards to history, advance round
 ## 6. check_winner() → game over? → game_over.tscn or continue
 
+## AI level config for both players (from level selector).
+## Player 0: Human (0), L1 (1), L2 (2).  Player 1: L1 (1), L2 (2) only.
+enum AI_Level {
+	Human = 0,
+	Level_1,
+	Level_2,
+	# Level_3,  # Reserved for future
+	# Level_4,  # Reserved for future
+}
+
+const AI_LEVEL_NAMES := ["Human", "L1", "L2"]
+
 # ─── Constants ───────────────────────────────────────────────────────────────
 
 const MAX_ROUNDS: int = 8
 const TARGET_SCORE: int = 4
 const NUM_PLAYERS: int = 2
+
+## Current AI levels for each player (set from level selector).
+var ai_levels: Array[AI_Level] = [AI_Level.Human, AI_Level.Level_1]
 
 # ─── State Variables ─────────────────────────────────────────────────────────
 
@@ -116,7 +130,7 @@ func resolve_current_round() -> bool:
 		RoundResult.Value.PLAYER1_WINS:
 			scores[1] += 1
 		RoundResult.Value.HOLD:
-			pass  # No score change for hold
+			pass # No score change for hold
 
 	# Track Lady vs Prince instant win
 	if held_cards0.power == Card.Power.Lady and held_cards1.power == Card.Power.Prince:
