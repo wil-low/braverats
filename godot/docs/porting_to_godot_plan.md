@@ -102,11 +102,6 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 **❌ Missing — needs creation:**
 | Component | Purpose |
 |-----------|--------|
-| `game_logic.gd` | Core rules: `resolve_round()`, `move_cards()`, `check_winner()`, `new_game()`. UI-agnostic, testable. |
-| `round_result.gd` | Enum for round results (Player0 wins, Player1 wins, Hold) |
-| `game_over.tscn` | End-of-game screen: winner, scores, round history, career stats, Play Again |
-| `help.tscn` | How-to-play + per-card help (from original ui.cpp help text) |
-| `game_state.gd` (autoload) | Centralized GameState singleton: players, rounds, scores, effects, held rounds, pending commands |
 | `audio_manager.gd` (autoload) | Sound effects: card selection, reveal, round end, game over |
 | `stats_manager.gd` (autoload) | ConfigFile persistence for career stats |
 
@@ -147,16 +142,46 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - **`help/help.tscn`** — ✅ Exists (Cheaters card types): Guard/Priest/Baron etc. Needs Braverats cards (Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince).
 - **`help/card_help_page.tscn`** — ✅ Exists (tool node): card icon, name, description. Needs `Card.Power` instead of `Deck.CardType`.
 
-### Phase 3: Game Loop Integration
-- **`main/main.gd`** — Rewrite game loop:
-  1. `new_game()` — deal 8 cards each, clear GameState, start round 0
-  2. Human selects card → click → `play_card()` → AI selects card → resolve
-  3. Show face-down → brief pause → flip/reveal simultaneously
-  4. `game_logic.resolve_round()` → animate result → move cards to history area
-  5. Auto-advance (1-2s) or button press to skip
-  6. Check winner → game_over.tscn or next round
-- **`animator/animator.gd`** — Add: `reveal_cards(card0, card1)`, `show_effect(player_idx, effect_type)`, `show_result(result_text, duration)`
-- **Pause overlay** — Already exists. Connect to GameState: Resume, Quit (to title, discard current game), Statistics.
+### Phase 3: Game Loop Integration — ✅ COMPLETE (with bugs to fix)
+> Verified 2026-07-19
+
+#### ✅ `main/main.gd` — FULLY REWRITTEN (was marked ❌ but is actually done)
+- `init_players()` — deals 8 cards each, calls `GameState.new_game()`, starts round 0 ✅
+- `_prepare_deck()` — calls `deck.prepare_braverats()` ✅
+- `_deal_cards()` — animated deal to both player hands ✅
+- `_start_selection_phase()` — manages human vs AI selection flow ✅
+- `_on_card_hand_clicked()` — human click → move card to front, store in GameState ✅
+- `_ai_select()` — L1 random / L2 evaluation-based selection ✅
+- `_start_reveal()` — face-down → move to table → flip/reveal simultaneously ✅
+- `_resolve_round()` — resolve, update scores, play sound, move to discard ✅
+- `_handle_game_over()` — transition to `game_over.tscn` ✅
+- `_advance_to_next_round()` — auto-advance with speed-controlled delay ✅
+- `_update_display()` — syncs score labels, plus/unrealized, effect indicators ✅
+- `_update_effect()` — shows Spy (frame 2) or General (frame 6) sprite ✅
+- **⚠️ Needs:** Connect pause overlay signals in `application.gd`, add `round_won` signal wiring for stats
+
+#### ⚠️ `animator/animator.gd` — PARTIALLY COMPLETE (reveal/resolve inline in main.gd)
+- ✅ Has: `delay()`, `flip()`, `move_card()`, `flash()`, `kill_tweens()`
+- ❌ Missing from plan: `reveal_cards(card0, card1)`, `show_effect(player_idx, effect_type)`, `show_result(result_text, duration)`
+- ⚡ **Design note:** Reveal logic implemented inline in `main.gd._start_reveal()` rather than as animator methods — acceptable tradeoff
+- ❌ **Bug:** `reveal_hand(p: Player, ...)` references deleted `Player` type — should be removed or refactored
+
+#### ✅ Pause overlay — EXISTS and connected (with bugs)
+- `pause/pause.gd` has signals: `resume_pressed`, `stats_pressed`, `help_pressed`, `exit_pressed` ✅
+- `application.gd` has handler methods for all signals ✅
+- ❌ **Bug:** `_on_pause_exit_pressed()` references `_main.interrupted = true` but `Main` has no such property
+- ❌ **Bug:** `_on_pause_exit_pressed()` doesn't properly clean up GameState/animation state on quit
+
+---
+
+#### Phase 3 Bugs to Fix (before marking ✅)
+| # | File | Issue | Priority |
+|---|------|-------|----------|
+| 1 | `application.gd:32` | References `_main.round_won.disconnect()` — no `round_won` signal in `Main` | High |
+| 2 | `application.gd:100` | References `_main.interrupted = true` — no such property in `Main` | High |
+| 3 | `application.gd:139-148` | `_on_round_won()` handler exists but signal never emitted — dead code | Medium |
+| 4 | `animator.gd` | `reveal_hand(p: Player)` references deleted `Player` type | High |
+| 5 | `game_over.gd:8` | `@onready var rounds_2: Label = $Rounds2` — scene has `Rounds0`, not `Rounds2` | High |
 
 ### Phase 4: Polish
 - **Auto-advance** — 1-2s pause between rounds, button press to skip. Shorter for AI vs AI mode.
@@ -228,20 +253,20 @@ godot/                          ← Cheaters project adapted for Braverats
 │   ├── game_logic.gd           ✅ Pure game rules (resolve_round, check_winner, etc.)
 │   ├── game_state.gd           ✅ Centralized state + AI_Level enum (needs autoload)
 │   ├── round_result.gd         ✅ RoundResult enum
-│   ├── main.gd                 ❌ Cheaters game loop (rewrite for Braverats)
+│   ├── main.gd                 ✅ Game loop fully rewritten (see Phase 3)
 │   ├── main.tscn               ✅ P0/P1 scores, Unrealized/Plus, Effect0/Effect1
 │   └── menu.png
 ├── card/                       ⚠️ Scene done, script needs adaptation
-│   ├── card.gd                 ❌ Cheaters Rank enum ( redefine for Braverats)
+│   ├── card.gd                 ✅ Braverats enum + display logic
 │   ├── card.tscn               ✅ Back(frame.png) + Character(characters.png) + Value
 │   ├── frame.png               ✅ 2 frames: face-up border / face-down
 │   └── characters.png          ✅ 8 frames: Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince
 ├── player/                     ✅ Deleted (all Cheaters concepts)
 │   └── (empty)                 All player logic moved to GameState
 ├── deck/                       ⚠️ Infrastructure exists, needs new method
-│   ├── deck.gd                 ⚠️ Has prepare_cheaters() (add prepare_braverats())
+│   ├── deck.gd                 ✅ Has prepare_braverats() + prepare_cheaters() (cleanup needed)
 │   └── deck.tscn               ✅ Sprite2D + card_scene export
-├── animator/                   ✅ Singleton: delay, move_card, flip, flash
+├── animator/                   ⚠️ Singleton: delay, flip, move_card, flash (reveal_hand references deleted Player)
 │   ├── animator.gd
 │   └── animator.tscn
 ├── digit_sprite/               ✅ Digit display for labels/buttons
@@ -254,8 +279,8 @@ godot/                          ← Cheaters project adapted for Braverats
 │   ├── rules.md
 │   ├── conventions.md
 │   └── invariants.md
-├── game_over.tscn              ❌ NEW: end-of-game scene
-├── help.tscn                   ❌ NEW: how-to-play + card encyclopedia
+├── game_over.tscn              ⚠️ End-of-game scene (needs bug fix: $Rounds2 → $Rounds0)
+├── help.tscn                   ⚠️ Exists but has Cheaters card data (needs Braverats update)
 ├── audio_manager.gd (autoload) ❌ NEW: sound effects
 └── stats_manager.gd (autoload) ❌ NEW: ConfigFile persistence
 ```
@@ -299,6 +324,21 @@ Documented in `main/game_logic.gd`. Critical order:
 **Bug 2 (FIXED):** Magician no longer nullifies General's +2. General only flags for next round. Magician nullifies opponent's card EFFECT but General's persistent +2 bypasses nullification.
 
 **Bug 7 (FIXED):** `deck.gd` now has `prepare_braverats()` that creates 8 unique cards per player (16 total), shuffled together.
+
+---
+
+### Bug 8: Phase 3 Verification — NEED FIX
+
+| # | File | Line | Issue | Fix |
+|---|------|------|-------|-----|
+| 8 | `game_over.gd` | 8 | `@onready var rounds_2: Label = $Rounds2` — scene has `Rounds0`, not `Rounds2` | Change `$Rounds2` to `$Rounds0` |
+| 9 | `game_logic.gd` | ~130-131 | `GameState.held_cards0.clear()` and `GameState.held_cards1.clear()` — `held_cards` are `Card`, not Arrays | Change `.clear()` to `= null` |
+| 10 | `animator.gd` | ~38 | `reveal_hand(p: Player)` references deleted `Player` type | Remove method or replace with `reveal_cards(card0, card1)` |
+| 11 | `application.gd` | 32 | `_main.round_won.disconnect()` — no `round_won` signal exists in `Main` | Remove this line |
+| 12 | `application.gd` | 100 | `_main.interrupted = true` — no such property in `Main` | Remove or replace with proper cleanup |
+| 13 | `application.gd` | 139-148 | `_on_round_won()` handler exists but signal never emitted | Remove or connect signal |
+| 14 | `card.gd` | - | Uses `Counsellor` but plan card reference says `Chancellor` | Consider renaming for consistency |
+| 15 | `help.tscn` | - | Still has Cheaters cards (Guard/Priest/Baron) not Braverats cards | Replace with Braverats card descriptions |
 
 ---
 

@@ -1,6 +1,9 @@
 class_name Deck extends Node2D
 
+signal card_clicked(hand: Deck, card_idx: int)
+
 var _selected_cards: Array[int] = []
+var _selected_card: int = -1
 
 @export var card_scene: PackedScene
 @export var fan_offset := 0
@@ -105,6 +108,41 @@ func clear_selection() -> void:
 
 func _is_card_selected(idx: int) -> bool:
 	return _selected_cards.has(idx)
+
+## Handle click on this deck (player hand). Returns clicked card index or -1.
+func _handle_click(global_pos: Vector2) -> int:
+	var local_pos := to_local(global_pos)
+	var card_rect := Rect2(Vector2.ZERO, Vector2(11, 17))  # Card collision size
+
+	# Find clicked card — iterate in reverse (top cards first)
+	for i in range(get_child_count() - 1, -1, -1):
+		var c := get_child(i) as Card
+		if c:
+			var card_abs := global_position + c.position
+			var card_local := to_local(card_abs)
+			if card_local.x >= local_pos.x - 6 and card_local.x <= local_pos.x + 6 and \
+			   card_local.y >= local_pos.y - 9 and card_local.y <= local_pos.y + 9:
+				card_clicked.emit(self, i)
+				return i
+	return -1
+
+## Move a card from its current position to the end of the hand.
+func _move_card_to_end(card_idx: int) -> void:
+	if card_idx >= get_child_count():
+		return
+	var card := get_child(card_idx) as Node2D
+	if card == null:
+		return
+	remove_child(card)
+	add_child(card)
+
+## Reposition all cards in the hand for proper fan display.
+func _reposition_cards() -> void:
+	var total := get_child_count()
+	for i in range(total):
+		var c := get_child(i) as Node2D
+		if c:
+			c.position = Vector2(0, i * 2)
 
 
 func get_selected_count() -> int:
