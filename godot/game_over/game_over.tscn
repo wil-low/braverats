@@ -1,0 +1,94 @@
+[gd_scene format=3 uid="uid://073u7b5lg5b"]
+
+[ext_resource type="Script" uid="uid://bxidm2wlh52rf" path="res://main/main.gd" id="1_xwkvk"]
+[ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="16_n3o0a"]
+
+[node name="GameOver" type="Node2D" unique_id=287543303]
+script = ExtResource("1_xwkvk")
+metadata/_edit_horizontal_guides_ = [24.0, 48.0]
+metadata/_edit_vertical_guides_ = [84.0, 42.0]
+
+[node name="Message" type="Label" parent="." unique_id=1048015456]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 14.0
+offset_top = 2.0
+offset_right = 69.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "PLAYER 0 WINS!"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="GameScore" type="Label" parent="." unique_id=600000333]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 37.0
+offset_top = 10.0
+offset_right = 48.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "4:2"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="Rounds1" type="Label" parent="." unique_id=2095367326]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = 20.0
+offset_right = 61.0
+offset_bottom = 26.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "A B C D E"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="Rounds2" type="Label" parent="." unique_id=634290664]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 25.0
+offset_top = 28.0
+offset_right = 61.0
+offset_bottom = 34.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "A B C D E"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="TotalScore" type="Label" parent="." unique_id=581215319]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 33.0
+offset_top = 40.0
+offset_right = 52.0
+offset_bottom = 46.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "12:24"
+label_settings = ExtResource("16_n3o0a")
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="." unique_id=1891676138]
+offset_right = 84.0
+offset_bottom = 48.0
+flat = true
