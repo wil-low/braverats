@@ -41,12 +41,12 @@ func show_game(gs: GameState) -> void:
 		var p0_power := entry["card0"] as Card.Power
 		var p1_power := entry["card1"] as Card.Power
 		var pts := entry["points"] as int
-		var r = entry["result"] as RoundResult
+		var r: GameState.RoundResult = entry["result"]
 		## Result indicator: "!!" = Lady-Prince instant win, "++" = 2 points, "+" = 1 point
 		var p0_mark := ""
 		var p1_mark := ""
-		match r.value:
-			RoundResult.Value.PLAYER0_WINS:
+		match r:
+			GameState.RoundResult.PLAYER0_WINS:
 				## Check if it was an instant Lady vs Prince
 				if p0_power == Card.Power.Lady and p1_power == Card.Power.Prince:
 					p0_mark = " !!"
@@ -54,14 +54,14 @@ func show_game(gs: GameState) -> void:
 					p0_mark = " ++"
 				else:
 					p0_mark = " +"
-			RoundResult.Value.PLAYER1_WINS:
+			GameState.RoundResult.PLAYER1_WINS:
 				if p1_power == Card.Power.Lady and p0_power == Card.Power.Prince:
 					p1_mark = " !!"
 				elif pts == 2:
 					p1_mark = " ++"
 				else:
 					p1_mark = " +"
-			RoundResult.Value.HOLD:
+			GameState.RoundResult.HOLD:
 				p0_mark = " —"
 				p1_mark = " —"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)

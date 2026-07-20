@@ -82,7 +82,7 @@ static func _evaluate(my_card: Card, opp_card: Card, player_idx: int, gs: GameSt
  Positive = good for AI, Negative = bad for AI.
 	"""
 	var opponent_idx := 1 - player_idx
-	var result: RoundResult.Value
+	var result: GameState.RoundResult
 
 	# Resolve the round using GameLogic
 	result = GameLogic.resolve_round(my_card, opp_card, gs)
@@ -90,28 +90,28 @@ static func _evaluate(my_card: Card, opp_card: Card, player_idx: int, gs: GameSt
 	var score := 0.0
 
 	match result:
-		RoundResult.Value.PLAYER0_WINS:
+		GameState.RoundResult.PLAYER0_WINS:
 			if player_idx == 0:
 				score = _get_points(my_card, gs)
 			else:
 				score = -1.0  # AI loses
-		RoundResult.Value.PLAYER1_WINS:
+		GameState.RoundResult.PLAYER1_WINS:
 			if player_idx == 1:
 				score = _get_points(opp_card, gs)
 			else:
 				score = -1.0  # AI loses
-		RoundResult.Value.HOLD:
+		GameState.RoundResult.HOLD:
 			score = 0.0  # Draw, no points
 
 	# Bonus: prefer winning with higher-value cards (Chancellor = 2 pts)
-	if (player_idx == 0 and result == RoundResult.Value.PLAYER0_WINS) or \
-	   (player_idx == 1 and result == RoundResult.Value.PLAYER1_WINS):
+	if (player_idx == 0 and result == GameState.RoundResult.PLAYER0_WINS) or \
+	   (player_idx == 1 and result == GameState.RoundResult.PLAYER1_WINS):
 		var winner_card := my_card if player_idx == 0 else opp_card
 		if winner_card.power == Card.Power.Chancellor:
 			score += 1.0  # Bonus for knowing Chancellor wins 2 pts
 
 	# Penalize playing against a known strong opponent card
-	if opponent_idx == 0 and result == RoundResult.Value.PLAYER1_WINS:
+	if opponent_idx == 0 and result == GameState.RoundResult.PLAYER1_WINS:
 		if opp_card.power == Card.Power.Lady:
 			score += 1.5  # Lady beats Prince — good for P1
 		elif opp_card.power == Card.Power.Spy:

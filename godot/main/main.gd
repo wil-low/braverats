@@ -119,6 +119,7 @@ func _on_card_hand_clicked(card: Card) -> void:
 
 	card.pressed.disconnect(_on_card_hand_clicked)
 	_played_0.add_child(card)
+	card.z_index = RenderingServer.CANVAS_ITEM_Z_MAX
 	await Animator.move_card(card, _played_0.global_position, 0.5)
 	_game_state.hold_card0(card)
 
@@ -172,6 +173,7 @@ func _ai_select(player_idx: int) -> void:
 		_game_state.hold_card1(selected)
 
 	tgt.add_child(selected)
+	selected.z_index = RenderingServer.CANVAS_ITEM_Z_MAX
 	await Animator.move_card(selected, tgt.global_position, 0.5)
 
 

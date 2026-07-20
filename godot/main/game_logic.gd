@@ -27,7 +27,7 @@ extends RefCounted
 # ─── Core Functions ─────────────────────────────────────────────────────────
 
 ## Resolve a single round given both players' cards.
-## Returns a RoundResult.Value.
+## Returns a RoundResult.
 ## Updates GameState with the result (called by GameState).
 ##
 ## Special interactions:
@@ -37,21 +37,21 @@ extends RefCounted
 ## - General +2 applies to current card, persists, not nullifiable
 ## - Assassin inverts result (applies after other effects)
 ## - Prince wins vs all except Lady and Assassin
-static func resolve_round(card0: Card, card1: Card, gs: GameState) -> RoundResult.Value:
+static func resolve_round(card0: Card, card1: Card, gs: GameState) -> GameState.RoundResult:
 	# ─── Both play same card ─────────────────────────────────────────────
 	if card0.power == card1.power:
 		match card0.power:
 			Card.Power.Jester:
-				return RoundResult.Value.HOLD # Jester vs Jester → hold
+				return GameState.RoundResult.HOLD # Jester vs Jester → hold
 			Card.Power.General:
 				# Both get +2 to next card (persistent effect)
 				gs.effects[0] = Card.Power.General
 				gs.effects[1] = Card.Power.General
 				# Same power = tie → Player0 wins (first to act in original)
-				return RoundResult.Value.PLAYER0_WINS
+				return GameState.RoundResult.PLAYER0_WINS
 			_:
 				# Same card: compare strength (equal), Player0 wins ties
-				return RoundResult.Value.PLAYER0_WINS
+				return GameState.RoundResult.PLAYER0_WINS
 
 	# ─── Step 1: Magician nullifies opponent's effect (before General) ──
 	# General's +2 is persistent and NOT nullifiable — it only flags for next round.
@@ -63,13 +63,13 @@ static func resolve_round(card0: Card, card1: Card, gs: GameState) -> RoundResul
 	# Jester beats Magician (Jester nullifies Magician's effect too).
 	# Jester nullifies everything including Prince → hold.
 	if card0.power == Card.Power.Jester or card1.power == Card.Power.Jester:
-		return RoundResult.Value.HOLD
+		return GameState.RoundResult.HOLD
 
 	# ─── Step 3: Lady vs Prince instant win (not nullifiable) ────────────
 	if card0.power == Card.Power.Lady and card1.power == Card.Power.Prince:
-		return RoundResult.Value.PLAYER0_WINS
+		return GameState.RoundResult.PLAYER0_WINS
 	if card1.power == Card.Power.Lady and card0.power == Card.Power.Prince:
-		return RoundResult.Value.PLAYER1_WINS
+		return GameState.RoundResult.PLAYER1_WINS
 
 	# ─── Step 4: Compute effective power for comparison ──────────────────
 	# General does NOT boost current card — only flags for next round.
@@ -125,11 +125,11 @@ static func resolve_round(card0: Card, card1: Card, gs: GameState) -> RoundResul
 	# ─── Return result ───────────────────────────────────────────────────
 	match comparison:
 		1:
-			return RoundResult.Value.PLAYER0_WINS
+			return GameState.RoundResult.PLAYER0_WINS
 		-1:
-			return RoundResult.Value.PLAYER1_WINS
+			return GameState.RoundResult.PLAYER1_WINS
 		_:
-			return RoundResult.Value.HOLD
+			return GameState.RoundResult.HOLD
 
 ## Move cards from one collection to another.
 ## Used for: discard pile, draw pile, round history.

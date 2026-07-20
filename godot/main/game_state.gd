@@ -22,6 +22,13 @@ enum AI_Level {
 	# Level_4,  # Reserved for future
 }
 
+## Result of a Braverats round resolution.
+enum RoundResult {
+	PLAYER0_WINS = 0,
+	PLAYER1_WINS = 1,
+	HOLD = 2,  # Round nullified / on hold
+}
+
 const AI_LEVEL_NAMES := ["Human", "L1", "L2"]
 
 # ─── Constants ───────────────────────────────────────────────────────────────
@@ -102,13 +109,13 @@ func resolve_current_round() -> bool:
 		return false
 
 	# Resolve the round
-	var result: RoundResult.Value = GameLogic.resolve_round(held_cards0, held_cards1, self)
+	var result: RoundResult = GameLogic.resolve_round(held_cards0, held_cards1, self)
 
 	# Calculate points for this round (1 normally, 2 if Chancellor wins against non-Magician)
 	var points: int = 1
-	if result == RoundResult.Value.PLAYER0_WINS and held_cards0.power == Card.Power.Chancellor and held_cards1.power != Card.Power.Magician:
+	if result == RoundResult.PLAYER0_WINS and held_cards0.power == Card.Power.Chancellor and held_cards1.power != Card.Power.Magician:
 		points = 2
-	elif result == RoundResult.Value.PLAYER1_WINS and held_cards1.power == Card.Power.Chancellor and held_cards0.power != Card.Power.Magician:
+	elif result == RoundResult.PLAYER1_WINS and held_cards1.power == Card.Power.Chancellor and held_cards0.power != Card.Power.Magician:
 		points = 2
 
 	# Record in history
@@ -122,7 +129,7 @@ func resolve_current_round() -> bool:
 	round_history.append(entry)
 
 	# Track held rounds
-	if result == RoundResult.Value.HOLD:
+	if result == RoundResult.HOLD:
 		held_rounds += 1
 	else:
 		# Resolve held rounds: decisive winner takes all held rounds
@@ -133,11 +140,11 @@ func resolve_current_round() -> bool:
 
 	# Update scores with correct points
 	match result:
-		RoundResult.Value.PLAYER0_WINS:
+		RoundResult.PLAYER0_WINS:
 			scores[0] += points
-		RoundResult.Value.PLAYER1_WINS:
+		RoundResult.PLAYER1_WINS:
 			scores[1] += points
-		RoundResult.Value.HOLD:
+		RoundResult.HOLD:
 			pass # No score change for hold
 
 	# Track Lady vs Prince instant win
@@ -162,9 +169,9 @@ func resolve_current_round() -> bool:
 	return true
 
 ## Get the result of the last resolved round.
-func get_last_round_result() -> RoundResult.Value:
+func get_last_round_result() -> RoundResult:
 	if round_history.is_empty():
-		return RoundResult.Value.HOLD
+		return RoundResult.HOLD
 	return round_history.back().result
 
 ## Get the current round number (0-indexed).
