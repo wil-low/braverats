@@ -22,6 +22,8 @@ signal game_over(winner: int)
 @onready var _effect0: Sprite2D = $Effect0
 @onready var _effect1: Sprite2D = $Effect1
 
+@onready var _card_list1: Label = $CardList1
+
 @onready var _menu_button: TextureButton = $MenuButton
 
 @onready var _deal_audio: AudioStreamPlayer = $DealAudioPlayer
@@ -211,9 +213,9 @@ func _start_reveal() -> void:
 func _resolve_round(c0: Card, c1: Card) -> void:
 	# Apply General +2 effect to held card
 	if _game_state.is_general_active(0):
-		c0.set_power(c0.power)  # Flag that General effect is applied
+		c0.set_power(c0.power) # Flag that General effect is applied
 	if _game_state.is_general_active(1):
-		c1.set_power(c1.power)  # Flag that General effect is applied
+		c1.set_power(c1.power) # Flag that General effect is applied
 
 	# Resolve the round
 
@@ -303,25 +305,25 @@ func _update_display() -> void:
 	_score1.text = str(_game_state.scores[1])
 
 	# Plus / unrealized
-	if _game_state.unrealized[0] > 0:
-		_unrealized0.text = str(_game_state.unrealized[0])
-
-	if _game_state.unrealized[1] > 0:
-		_unrealized1.text = str(_game_state.unrealized[1])
+	_unrealized0.text = str(_game_state.unrealized[0])
+	_unrealized1.text = str(_game_state.unrealized[1])
 
 	# Effect indicators
 	_update_effect(_effect0, _game_state.is_spy_active(0), _game_state.is_general_active(0))
 	_update_effect(_effect1, _game_state.is_spy_active(1), _game_state.is_general_active(1))
+
+	# Player 1 hand display
+	_card_list1.text = _build_hand_string(_player_hand1)
 
 
 ## Show effect indicator sprite frame.
 func _update_effect(sprite: Sprite2D, is_spy: bool, is_general: bool) -> void:
 	if is_spy:
 		sprite.visible = true
-		sprite.frame = 2  # Spy frame
+		sprite.frame = Card.Power.Spy
 	elif is_general:
 		sprite.visible = true
-		sprite.frame = 6  # General frame
+		sprite.frame = Card.Power.General
 	else:
 		sprite.visible = false
 
@@ -337,3 +339,16 @@ func _clear_animation_layer() -> void:
 
 func _is_speedrun() -> bool:
 	return Animator._speed <= 0
+
+
+# ─── Hand Display ────────────────────────────────────────────────────────────
+
+## Build a string representation of a player's hand.
+## Each card is shown as its power digit (0-7).
+## Space character for empty slots up to max hand size.
+func _build_hand_string(hand: Deck) -> String:
+	const EMPTY = "        "
+	var result := EMPTY
+	for card in hand.get_children():
+		result[card.power] = str(card.power)
+	return result

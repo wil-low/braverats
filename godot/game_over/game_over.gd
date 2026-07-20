@@ -49,11 +49,11 @@ func show_game(gs: GameState) -> void:
 			GameState.RoundResult.PLAYER0_WINS_GAME:
 				p0_mark = "!"
 			GameState.RoundResult.PLAYER0_WINS:
-				p0_mark = "#" if pts == 2 else "+"
+				p0_mark = String.chr(166) if pts == 2 else "+"
 			GameState.RoundResult.PLAYER1_WINS_GAME:
 				p1_mark = "!"
 			GameState.RoundResult.PLAYER1_WINS:
-				p1_mark = "#" if pts == 2 else "+"
+				p1_mark = String.chr(166) if pts == 2 else "+"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
 		p1_rounds += Card.POWER_NAMES[p1_power][0] + p1_mark
 		p0_rounds += Card.POWER_NAMES[p0_power][0] + p0_mark

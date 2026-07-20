@@ -107,11 +107,10 @@ static func resolve_round(card0: Card, card1: Card, gs: GameState) -> GameState:
 ## Walks ALL rounds, resolves held rounds, applies points.
 static func finalize_round(gs: GameState, card0: Card, card1: Card, result: GameState.RoundResult) -> void:
 	# Record round in history
-	var points: int = 1
 	var entry := {
 		"card0": card0.power if card0 else Card.Power.Jester,
 		"card1": card1.power if card1 else Card.Power.Jester,
-		"points": points,
+		"points": 0,
 		"result": result,
 		"round": gs.round_count,
 	}
@@ -130,42 +129,32 @@ static func finalize_round(gs: GameState, card0: Card, card1: Card, result: Game
 		gs.unrealized[1] = 0
 
 		# Walk through ALL rounds — mirrors C++ move_cards loop
-		for h in gs.round_history:
-			var rr: GameState.RoundResult = h.result
+		for i in gs.round_history.size():
+			var h := gs.round_history[i]
 
 			# If this round was Hold, resolve it to current decisive result
-			if rr == GameState.RoundResult.HOLD:
-				h["result"] = result
-				rr = result
+			if h.result == GameState.RoundResult.HOLD:
+				h.result = result
 
 			# Determine points for this round
-			match rr:
+			h.points = 1
+			match h.result:
 				GameState.RoundResult.PLAYER0_WINS:
 					if h.card0 == Card.Power.Chancellor and h.card1 != Card.Power.Magician:
-						points = 2
+						h.points = 2
 						gs.scores[0] += 2
 					else:
 						gs.scores[0] += 1
 				GameState.RoundResult.PLAYER1_WINS:
 					if h.card1 == Card.Power.Chancellor and h.card0 != Card.Power.Magician:
-						points = 2
+						h.points = 2
 						gs.scores[1] += 2
 					else:
 						gs.scores[1] += 1
 				GameState.RoundResult.HOLD:
 					# Still Hold — add to unrealized
-					if h.card0 == Card.Power.Chancellor:
-						gs.unrealized[0] += 2
-					else:
-						gs.unrealized[0] += 1
-					if h.card1 == Card.Power.Chancellor:
-						gs.unrealized[1] += 2
-					else:
-						gs.unrealized[1] += 1
-
-		# Update current round entry points
-		var last: Dictionary = gs.round_history.back()
-		last["points"] = points
+					gs.unrealized[0] += (2 if h.card0 == Card.Power.Chancellor else 1)
+					gs.unrealized[1] += (2 if h.card1 == Card.Power.Chancellor else 1)
 
 
 static func check_winner(gs: GameState) -> GameState.RoundResult:
