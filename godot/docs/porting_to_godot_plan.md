@@ -139,7 +139,7 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - **`player/`** — Deleted (all Cheaters concepts). Braverats player is just a card hand layout: display cards, handle clicks, emit `card_played(card)` signal.
 - **`level_selector/`** — Updated: uses `GameState.AI_Level` now. Player 0 selects Human/L1/L2, Player 1 selects L1/L2 only.
 - **`game_over/game_over.tscn`** — ✅ Exists (Cheaters layout): Message, GameScore, Rounds1/2, TotalScore, Button. Needs Braverats content (card names, Braverats round history).
-- **`help/help.tscn`** — ✅ Exists (Cheaters card types): Guard/Priest/Baron etc. Needs Braverats cards (Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince).
+- **`help/help.tscn`** — ✅ Fixed: all 8 Braverats cards (Jester/Lady/Spy/Assassin/Chancellor/Magician/General/Prince) with descriptions from Gamebuino sources
 - **`help/card_help_page.tscn`** — ✅ Exists (tool node): card icon, name, description. Needs `Card.Power` instead of `Deck.CardType`.
 
 ### Phase 3: Game Loop Integration — ✅ COMPLETE (with bugs to fix)
@@ -158,26 +158,20 @@ The `godot/` directory is the Cheaters project adapted as the Braverats base. Mu
 - `_advance_to_next_round()` — auto-advance with speed-controlled delay ✅
 - `_update_display()` — syncs score labels, plus/unrealized, effect indicators ✅
 - `_update_effect()` — shows Spy (frame 2) or General (frame 6) sprite ✅
-- **⚠️ Needs:** Connect pause overlay signals in `application.gd`, add `round_won` signal wiring for stats
+- ✅ All pause overlay signals connected in `application.gd`
 
 #### ✅ `animator/animator.gd` — COMPLETE (reveal/resolve inline in main.gd)
 - ✅ Has: `delay()`, `flip()`, `reveal_cards(card0, card1)`, `move_card()`, `flash()`, `kill_tweens()`
+- Bug #8 fixed: `_on_round_won()` dead code handler removed from `application.gd`
 - ❌ Missing from plan: `show_effect(player_idx, effect_type)`, `show_result(result_text, duration)`
 
-#### ✅ Pause overlay — EXISTS and connected (with bugs)
+#### ✅ Pause overlay — EXISTS and connected
 - `pause/pause.gd` has signals: `resume_pressed`, `stats_pressed`, `help_pressed`, `exit_pressed` ✅
 - `application.gd` has handler methods for all signals ✅
-- ❌ **Bug:** `_on_pause_exit_pressed()` references `_main.interrupted = true` but `Main` has no such property
-- ❌ **Bug:** `_on_pause_exit_pressed()` doesn't properly clean up GameState/animation state on quit
 
 ---
 
-#### Phase 3 Remaining Bugs (4 of 8 fixed: #1 game_over, #2 game_logic, #4 animator, #5 removed)
-| # | File | Issue | Priority |
-|---|------|-------|----------|
-| 6 | `application.gd:32` | `_main.round_won.disconnect()` — no `round_won` signal | High |
-| 7 | `application.gd:100` | `_main.interrupted = true` — no such property | High |
-| 8 | `application.gd:139-148` | `_on_round_won()` handler — dead code | Medium |
+
 
 ### Phase 4: Polish
 - **Auto-advance** — 1-2s pause between rounds, button press to skip. Shorter for AI vs AI mode.
@@ -276,7 +270,7 @@ godot/                          ← Cheaters project adapted for Braverats
 │   ├── conventions.md
 │   └── invariants.md
 ├── game_over.tscn              ⚠️ End-of-game scene (needs bug fix: $Rounds2 → $Rounds0)
-├── help.tscn                   ⚠️ Exists but has Cheaters card data (needs Braverats update)
+├── help.tscn                   ✅ Fixed: Braverats card data with Gamebuino descriptions
 ├── audio_manager.gd (autoload) ❌ NEW: sound effects
 └── stats_manager.gd (autoload) ❌ NEW: ConfigFile persistence
 ```
@@ -333,7 +327,7 @@ Fixed so far: #8 (`game_over.gd` rounds_2→Rounds0), #9 (`game_logic.gd` clear�
 | 12 | `application.gd` | 100 | `_main.interrupted = true` — no such property | ✅ Fixed | removed stale property reference |
 | 13 | `application.gd` | 139-148 | `_on_round_won()` handler — dead code | ✅ Fixed | removed dead handler method |
 | ~~14~~ | ~~`card.gd`~~ | - | ~~Uses `Counsellor` but plan says `Chancellor`~~ | ~~FIXED~~ |
-| 15 | `help.tscn` | - | Still has Cheaters cards (Guard/Priest/Baron) | 🟡 Medium |
+| ~~15~~ | ~~`help.tscn`~~ | - | ~~Still has Cheaters cards (Guard/Priest/Baron)~~ | ~~FIXED~~
 
 ---
 
