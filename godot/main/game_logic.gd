@@ -121,9 +121,9 @@ static func finalize_round(gs: GameState, card0: Card, card1: Card, result: Game
 	gs.scores[1] = 0
 
 	if result == GameState.RoundResult.PLAYER0_WINS_GAME:
-		gs.scores[0] = 100
+		gs.scores[0] = 99
 	elif result == GameState.RoundResult.PLAYER1_WINS_GAME:
-		gs.scores[1] = 100
+		gs.scores[1] = 99
 	else:
 		# Reset unrealized for held round resolution
 		gs.unrealized[0] = 0
@@ -167,31 +167,19 @@ static func finalize_round(gs: GameState, card0: Card, card1: Card, result: Game
 		var last: Dictionary = gs.round_history.back()
 		last["points"] = points
 
-## Check if the game has ended (someone reached target score or all rounds played).
-## Returns: -1 = game ongoing, 0 = Player0 wins, 1 = Player1 wins, 2 = draw
-static func check_winner(gs: GameState) -> int:
-	for i in 2:
-		var total_score: int = gs.scores[i] + gs.unrealized[i]
-		if total_score >= GameState.TARGET_SCORE:
-			return i
 
-	# Check if all rounds are played
-	if gs.round_count >= GameState.MAX_ROUNDS:
-		var score0: int = gs.scores[0] + gs.unrealized[0]
-		var score1: int = gs.scores[1] + gs.unrealized[1]
-		if score0 > score1:
-			return 0
-		elif score1 > score0:
-			return 1
+static func check_winner(gs: GameState) -> GameState.RoundResult:
+	if gs.last_result == GameState.RoundResult.PLAYER0_WINS_GAME or gs.last_result == GameState.RoundResult.PLAYER1_WINS_GAME:
+		return gs.last_result
+	if gs.scores[0] >= 4 or gs.scores[1] >= 4:
+		if gs.scores[0] == gs.scores[1]:
+			return GameState.RoundResult.HOLD
+		if gs.scores[0] > gs.scores[1]:
+			return GameState.RoundResult.PLAYER0_WINS_GAME
 		else:
-			return 2 # Draw
+			return GameState.RoundResult.PLAYER1_WINS_GAME
+	return GameState.RoundResult.HOLD if gs.round_count == GameState.MAX_ROUNDS else GameState.RoundResult.NO_RESULT
 
-	# Check for Lady vs Prince instant win (already resolved in resolve_round,
-	# but flag it in GameState for the UI to handle)
-	if gs.lady_beats_prince_player >= 0:
-		return gs.lady_beats_prince_player
-
-	return -1 # Game ongoing
 
 ## Start a new game. Resets all state.
 static func new_game(gs: GameState) -> void:
@@ -201,7 +189,7 @@ static func new_game(gs: GameState) -> void:
 	gs.chancellor_points = [0, 0]
 	gs.effects = [Card.Power.Jester, Card.Power.Jester]
 	gs.lady_beats_prince_player = -1
-	gs.game_over = false
+	gs.winner = GameState.RoundResult.NO_RESULT
 	gs.round_count = 0
 	gs.round_history.clear()
 	gs.held_cards0 = null

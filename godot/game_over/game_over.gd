@@ -22,13 +22,13 @@ func _on_button_pressed() -> void:
 ## Call after adding this scene to the tree.
 func show_game(gs: GameState) -> void:
 	## Winner message (replicates original C++ layout)
-	var winner := gs.get_winner()
-	if winner >= 0:
-		message.text = "PLAYER %d WINS!" % (1 + winner)
-	elif gs.scores[0] == gs.scores[1]:
+	var winner := gs.winner
+	if winner == GameState.RoundResult.PLAYER0_WINS_GAME:
+		message.text = "PLAYER 0 WINS!"
+	elif winner == GameState.RoundResult.HOLD:
 		message.text = "DRAW"
 	else:
-		message.text = "PLAYER %d WINS!" % (1 + (0 if gs.scores[0] > gs.scores[1] else 1))
+		message.text = "PLAYER 1 WINS!"
 
 	## Game score (current round points)
 	game_score.text = "%d:%d" % [gs.scores[0], gs.scores[1]]
@@ -46,21 +46,14 @@ func show_game(gs: GameState) -> void:
 		var p0_mark := " "
 		var p1_mark := " "
 		match r:
+			GameState.RoundResult.PLAYER0_WINS_GAME:
+				p0_mark = "!"
 			GameState.RoundResult.PLAYER0_WINS:
-				## Check if it was an instant Lady vs Prince
-				if p0_power == Card.Power.Lady and p1_power == Card.Power.Prince:
-					p0_mark = "!"
-				elif pts == 2:
-					p0_mark = "#"
-				else:
-					p0_mark = "+"
+				p0_mark = "#" if pts == 2 else "+"
+			GameState.RoundResult.PLAYER1_WINS_GAME:
+				p1_mark = "!"
 			GameState.RoundResult.PLAYER1_WINS:
-				if p1_power == Card.Power.Lady and p0_power == Card.Power.Prince:
-					p1_mark = "!"
-				elif pts == 2:
-					p1_mark = "#"
-				else:
-					p1_mark = "+"
+				p1_mark = "#" if pts == 2 else "+"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
 		p1_rounds += Card.POWER_NAMES[p1_power][0] + p1_mark
 		p0_rounds += Card.POWER_NAMES[p0_power][0] + p0_mark

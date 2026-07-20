@@ -234,9 +234,7 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 	_game_state.held_cards1 = null
 
 	# Step 4: Check winner
-	var winner: int = GameLogic.check_winner(_game_state)
-	if winner >= 0:
-		_game_state.game_over = true
+	_game_state.winner = GameLogic.check_winner(_game_state)
 
 	# Update scores and display
 	_update_display()
@@ -257,13 +255,13 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 
 	# Check for winner
 	if _game_state.is_game_over():
-		_handle_game_over(winner)
+		_handle_game_over(_game_state.winner)
 	else:
 		_advance_to_next_round()
 
 
 ## Handle game over transition.
-func _handle_game_over(winner: int) -> void:
+func _handle_game_over(winner: GameState.RoundResult) -> void:
 	# Play game over sound
 	if not _is_speedrun():
 		_game_over_audio.play()

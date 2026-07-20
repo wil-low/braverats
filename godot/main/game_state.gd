@@ -24,6 +24,7 @@ enum AI_Level {
 
 ## Result of a Braverats round resolution.
 enum RoundResult {
+	NO_RESULT = -1,
 	PLAYER0_WINS = 0,
 	PLAYER1_WINS = 1,
 	HOLD = 2,  # Round nullified / on hold
@@ -77,8 +78,7 @@ var round_count: int = 0
 ## Player index who won via Lady vs Prince instant win (-1 = none)
 var lady_beats_prince_player: int = -1
 
-## Flag: game has ended
-var game_over: bool = false
+var winner: RoundResult = RoundResult.NO_RESULT
 
 # ─── Flow Control ────────────────────────────────────────────────────────────
 
@@ -91,7 +91,7 @@ func new_game() -> void:
 	held_cards1 = null
 	round_count = 0
 	lady_beats_prince_player = -1
-	game_over = false
+	winner = RoundResult.NO_RESULT
 	round_history.clear()
 
 ## Set the card Player 0 has selected.
@@ -102,33 +102,9 @@ func hold_card0(card: Card) -> void:
 func hold_card1(card: Card) -> void:
 	held_cards1 = card
 
-## Get the result of the last resolved round.
-func get_last_round_result() -> RoundResult:
-	if round_history.is_empty():
-		return RoundResult.HOLD
-	return round_history.back().result
-
-## Get the current round number (0-indexed).
-func get_round_number() -> int:
-	return round_count
-
 ## Check if the game is over.
 func is_game_over() -> bool:
-	return game_over
-
-## Get the winner index (-1 if no winner yet).
-func get_winner() -> int:
-	if not game_over:
-		return -1
-	return GameLogic.check_winner(self)
-
-## Get the score for a given player.
-func get_score(player_idx: int) -> int:
-	return scores[player_idx] + unrealized[player_idx]
-
-## Get total rounds played.
-func get_total_rounds() -> int:
-	return round_count
+	return winner != RoundResult.NO_RESULT
 
 ## Check if Spy effect is active for a player (next round reveals opponent).
 func is_spy_active(player_idx: int) -> bool:
