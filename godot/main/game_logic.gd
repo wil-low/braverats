@@ -37,7 +37,7 @@ extends RefCounted
 ##     - Spy/General set next-round effects
 ##     - Prince vs Lady → instant game win
 static func resolve_round(card0: Card, card1: Card, gs: GameState) -> GameState:
-	var new_state = gs.duplicate()
+	var new_state = gs
 	# Step 1: Apply General +2 to base card power values
 	var p0_value: int = card0.power
 	var p1_value: int = card1.power
@@ -130,8 +130,7 @@ static func finalize_round(gs: GameState, card0: Card, card1: Card, result: Game
 		gs.unrealized[1] = 0
 
 		# Walk through ALL rounds — mirrors C++ move_cards loop
-		for i in range(gs.round_history.size()):
-			var h: Dictionary = gs.round_history[i]
+		for h in gs.round_history:
 			var rr: GameState.RoundResult = h.result
 
 			# If this round was Hold, resolve it to current decisive result

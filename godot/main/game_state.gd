@@ -1,5 +1,5 @@
 class_name GameState
-extends Node
+extends RefCounted
 
 ## Centralized game state for Braverats.
 ## Acts as a single source of truth for game flow.
