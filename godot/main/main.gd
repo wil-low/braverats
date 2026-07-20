@@ -13,8 +13,6 @@ signal save_stats
 
 @onready var _score0: Label = $Score0
 @onready var _score1: Label = $Score1
-@onready var _plus0: Label = $Plus0
-@onready var _plus1: Label = $Plus1
 @onready var _unrealized0: Label = $Unrealized0
 @onready var _unrealized1: Label = $Unrealized1
 @onready var _effect0: Sprite2D = $Effect0
@@ -77,6 +75,7 @@ func _deal_cards() -> Signal:
 			_player_hand0.add_child(c)
 			c.position = Vector2.ZERO
 			await Animator.move_card(c, pos, 0.15)
+			c.pressed.connect(_on_card_hand_clicked)
 
 		# Deal to Player 1 (top)
 		c = _deck.pop()
@@ -96,10 +95,6 @@ func _deal_cards() -> Signal:
 ## Wait for both players to select cards.
 func _start_selection_phase() -> void:
 	_round_active = true
-	_player_hand0.clear_selection()
-	_player_hand1.clear_selection()
-	_player_hand0._selected_card = -1
-	_player_hand1._selected_card = -1
 	_update_display()
 
 	# If P0 is human, wait for click. If AI, pick immediately.
@@ -110,20 +105,12 @@ func _start_selection_phase() -> void:
 # ─── Human Input ────────────────────────────────────────────────────────────
 
 ## Called when a card in PlayerHand is clicked (via Deck.card_clicked).
-func _on_card_hand_clicked(hand: Deck, card_idx: int) -> void:
+func _on_card_hand_clicked(card: Card) -> void:
 	if not _round_active:
 		return
-	# Only allow P0 to click (Player 0 is the bottom hand)
-	if hand != _player_hand0:
-		return
+
 	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
 		return
-
-	var card := _player_hand0.get_child(card_idx) as Card
-	_player_hand0._selected_card = card_idx
-	_player_hand0._move_card_to_end(card_idx)
-	_player_hand0._reposition_cards()
-	card.set_selected(true)
 
 	_game_state.hold_card0(card)
 
@@ -320,16 +307,10 @@ func _update_display() -> void:
 
 	# Plus / unrealized
 	if _game_state.unrealized[0] > 0:
-		_plus0.visible = true
 		_unrealized0.text = str(_game_state.unrealized[0])
-	else:
-		_plus0.visible = false
 
 	if _game_state.unrealized[1] > 0:
-		_plus1.visible = true
 		_unrealized1.text = str(_game_state.unrealized[1])
-	else:
-		_plus1.visible = false
 
 	# Effect indicators
 	_update_effect(_effect0, _game_state.is_spy_active(0), _game_state.is_general_active(0))

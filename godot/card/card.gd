@@ -1,5 +1,5 @@
 class_name Card
-extends Area2D
+extends Button
 
 ## Braverats card types. Frame index = power value.
 enum Power {

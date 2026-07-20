@@ -36,7 +36,7 @@ offset_right = 40.0
 offset_bottom = 6.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "12345678"
+text = "01234567"
 label_settings = ExtResource("16_n3o0a")
 horizontal_alignment = 1
 
@@ -44,6 +44,7 @@ horizontal_alignment = 1
 position = Vector2(55, 2)
 
 [node name="Effect1" type="Sprite2D" parent="." unique_id=1782000436]
+visible = false
 position = Vector2(75, 0)
 texture = ExtResource("4_4dugh")
 offset = Vector2(3.5, 6)
@@ -98,6 +99,7 @@ label_settings = ExtResource("16_n3o0a")
 horizontal_alignment = 1
 
 [node name="Effect0" type="Sprite2D" parent="." unique_id=441405982]
+visible = false
 position = Vector2(75, 27)
 texture = ExtResource("4_4dugh")
 offset = Vector2(3.5, 6)
