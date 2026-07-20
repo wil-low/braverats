@@ -252,9 +252,6 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 	c0.queue_free()
 	c1.queue_free()
 
-	# Clear effects after resolution
-	_game_state.clear_effects()
-
 	# Check for winner
 	if _game_state.is_game_over():
 		_handle_game_over(_game_state.winner)
