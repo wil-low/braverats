@@ -1,3 +1,4 @@
+class_name GameLogic
 extends RefCounted
 
 ## Pure game logic for Braverats — no Godot node references.
@@ -36,7 +37,7 @@ extends RefCounted
 ## - General +2 applies to current card, persists, not nullifiable
 ## - Assassin inverts result (applies after other effects)
 ## - Prince wins vs all except Lady and Assassin
-static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
+static func resolve_round(card0: Card, card1: Card, gs: GameState) -> RoundResult.Value:
 	# ─── Both play same card ─────────────────────────────────────────────
 	if card0.power == card1.power:
 		match card0.power:
@@ -44,8 +45,8 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 				return RoundResult.Value.HOLD # Jester vs Jester → hold
 			Card.Power.General:
 				# Both get +2 to next card (persistent effect)
-				GameState.effects[0] = Card.Power.General
-				GameState.effects[1] = Card.Power.General
+				gs.effects[0] = Card.Power.General
+				gs.effects[1] = Card.Power.General
 				# Same power = tie → Player0 wins (first to act in original)
 				return RoundResult.Value.PLAYER0_WINS
 			_:
@@ -76,9 +77,9 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 	var power0: int = card0.power
 	var power1: int = card1.power
 	if card0.power == Card.Power.General:
-		GameState.effects[0] = Card.Power.General # Flag for next round
+		gs.effects[0] = Card.Power.General # Flag for next round
 	if card1.power == Card.Power.General:
-		GameState.effects[1] = Card.Power.General # Flag for next round
+		gs.effects[1] = Card.Power.General # Flag for next round
 
 	# Apply nullification (Magician sets opponent to 0, but NOT General)
 	if nullified0:
@@ -110,16 +111,16 @@ static func resolve_round(card0: Card, card1: Card) -> RoundResult.Value:
 
 	# ─── Step 7: Spy effect flag (carried forward to next round) ────────
 	if card0.power == Card.Power.Spy:
-		GameState.effects[0] = Card.Power.Spy
+		gs.effects[0] = Card.Power.Spy
 	if card1.power == Card.Power.Spy:
-		GameState.effects[1] = Card.Power.Spy
+		gs.effects[1] = Card.Power.Spy
 
 	# ─── Step 8: Chancellor tracking ─────────────────────────────────────
 	# Chancellor counts as 2 points if this player wins the round
 	if comparison == 1 and card0.power == Card.Power.Chancellor:
-		GameState.chancellor_points[0] += 2
+		gs.chancellor_points[0] += 2
 	if comparison == -1 and card1.power == Card.Power.Chancellor:
-		GameState.chancellor_points[1] += 2
+		gs.chancellor_points[1] += 2
 
 	# ─── Return result ───────────────────────────────────────────────────
 	match comparison:
@@ -143,18 +144,16 @@ static func move_cards(source: Array[Card], target: Array[Card]) -> int:
 
 ## Check if the game has ended (someone reached target score or all rounds played).
 ## Returns: -1 = game ongoing, 0 = Player0 wins, 1 = Player1 wins, 2 = draw
-static func check_winner() -> int:
-	# Check if anyone reached the target score
+static func check_winner(gs: GameState) -> int:
 	for i in 2:
-		var total_score: int = GameState.scores[i] + GameState.unrealized[i]
+		var total_score: int = gs.scores[i] + gs.unrealized[i]
 		if total_score >= GameState.TARGET_SCORE:
 			return i
 
 	# Check if all rounds are played
-	if GameState.round_count >= GameState.MAX_ROUNDS:
-		# Determine winner by total score
-		var score0: int = GameState.scores[0] + GameState.unrealized[0]
-		var score1: int = GameState.scores[1] + GameState.unrealized[1]
+	if gs.round_count >= GameState.MAX_ROUNDS:
+		var score0: int = gs.scores[0] + gs.unrealized[0]
+		var score1: int = gs.scores[1] + gs.unrealized[1]
 		if score0 > score1:
 			return 0
 		elif score1 > score0:
@@ -164,22 +163,22 @@ static func check_winner() -> int:
 
 	# Check for Lady vs Prince instant win (already resolved in resolve_round,
 	# but flag it in GameState for the UI to handle)
-	if GameState.lady_beats_prince_player >= 0:
-		return GameState.lady_beats_prince_player
+	if gs.lady_beats_prince_player >= 0:
+		return gs.lady_beats_prince_player
 
 	return -1 # Game ongoing
 
 ## Start a new game. Resets all state.
-static func new_game() -> void:
-	GameState.scores = [0, 0]
-	GameState.unrealized = [0, 0]
-	GameState.held_rounds = 0
-	GameState.chancellor_points = [0, 0]
-	GameState.effects = [Card.Power.Jester, Card.Power.Jester]
-	GameState.lady_beats_prince_player = -1
-	GameState.game_over = false
-	GameState.round_count = 0
-	GameState.round_history.clear()
-	GameState.pending_cmd = false
-	GameState.held_cards0 = null
-	GameState.held_cards1 = null
+static func new_game(gs: GameState) -> void:
+	gs.scores = [0, 0]
+	gs.unrealized = [0, 0]
+	gs.held_rounds = 0
+	gs.chancellor_points = [0, 0]
+	gs.effects = [Card.Power.Jester, Card.Power.Jester]
+	gs.lady_beats_prince_player = -1
+	gs.game_over = false
+	gs.round_count = 0
+	gs.round_history.clear()
+	gs.pending_cmd = false
+	gs.held_cards0 = null
+	gs.held_cards1 = null

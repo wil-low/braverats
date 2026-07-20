@@ -1,8 +1,8 @@
+class_name GameState
 extends RefCounted
 
 ## Centralized game state for Braverats.
 ## Acts as a single source of truth for game flow.
-## Should be added as an autoload singleton.
 ##
 ## Game flow:
 ## 1. new_game() → initialize
@@ -76,7 +76,7 @@ var game_over: bool = false
 
 ## Initialize a new game. Call from application or main scene.
 func new_game() -> void:
-	GameLogic.new_game()
+	GameLogic.new_game(self)
 
 	# Reset held cards
 	held_cards0 = null
@@ -102,7 +102,7 @@ func resolve_current_round() -> bool:
 		return false
 
 	# Resolve the round
-	var result: RoundResult.Value = GameLogic.resolve_round(held_cards0, held_cards1)
+	var result: RoundResult.Value = GameLogic.resolve_round(held_cards0, held_cards1, self)
 
 	# Record in history
 	var entry := {
@@ -147,7 +147,7 @@ func resolve_current_round() -> bool:
 	round_count += 1
 
 	# Check winner
-	var winner: int = GameLogic.check_winner()
+	var winner: int = GameLogic.check_winner(self)
 	if winner >= 0:
 		game_over = true
 
@@ -171,7 +171,7 @@ func is_game_over() -> bool:
 func get_winner() -> int:
 	if not game_over:
 		return -1
-	return GameLogic.check_winner()
+	return GameLogic.check_winner(self)
 
 ## Get the score for a given player.
 func get_score(player_idx: int) -> int:

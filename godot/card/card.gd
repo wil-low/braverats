@@ -69,6 +69,9 @@ func _update_display() -> void:
 	## Only update when face-up (nodes are hidden when face-down)
 	if not face_up:
 		return
+	## Guard against calling before node is in scene tree (@onready not resolved)
+	if _sprite == null or _character == null or _value_label == null:
+		return
 	## Back border (face-up frame)
 	_sprite.frame = 0
 	## Character sprite (8 frames: Jester..Prince)

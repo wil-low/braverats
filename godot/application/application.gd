@@ -29,7 +29,6 @@ func _ready() -> void:
 		RenderingServer.render_loop_enabled = false
 		Engine.print_to_stdout = false
 		_main.round_finished.disconnect(_on_round_finished)
-		_main.round_won.disconnect(_on_round_won)
 		_main.save_stats.disconnect(save_config)
 		_main.init_players(42, false)
 	else:
@@ -38,8 +37,8 @@ func _ready() -> void:
 
 func save_config() -> void:
 	var config = ConfigFile.new()
-	for i in GameState.ai_levels.size():
-		config.set_value("AI_Level", "P" + str(i), GameState.ai_levels[i])
+	for i in _main.game_state.ai_levels.size():
+		config.set_value("AI_Level", "P" + str(i), _main.game_state.ai_levels[i])
 	config.set_value("Gameplay", "speed", _level_selector._speed_level.level)
 	config.set_value("Gameplay", "compact", _level_selector._compact)
 	config.set_value("Gameplay", "totals_and_wins", _stats._totals_and_wins)
@@ -57,11 +56,11 @@ func load_config() -> bool:
 	for i in 2:
 		var ai_level = config.get_value("AI_Level", "P" + str(i))
 		if ai_level != null:
-			GameState.ai_levels[i] = ai_level as GameState.AI_Level
+			_main.game_state.ai_levels[i] = ai_level as GameState.AI_Level
 
 	var speed = clamp(config.get_value("Gameplay", "speed"), SpeedLevel._min_speed, SpeedLevel._max_speed)
 	var compact = config.get_value("Gameplay", "compact", false)
-	_level_selector.set_levels(GameState.ai_levels, compact, speed)
+	_level_selector.set_levels(_main.game_state.ai_levels, compact, speed)
 	_stats._totals_and_wins = config.get_value("Gameplay", "totals_and_wins", [])
 	if _stats._totals_and_wins == []:
 		_stats._on_reset_button_pressed()
@@ -69,7 +68,7 @@ func load_config() -> bool:
 
 
 func _on_level_selector_levels_changed(levels: Array[GameState.AI_Level], compact: bool, speed: int) -> void:
-	GameState.ai_levels = levels
+	_main.game_state.ai_levels = levels
 	Animator._speed = pow(2, speed)
 	save_config()
 	_start.show()
@@ -97,7 +96,6 @@ func _on_pause_resume_pressed() -> void:
 
 
 func _on_pause_exit_pressed() -> void:
-	_main.interrupted = true
 	Animator.kill_tweens()
 	_main.get_tree().paused = false
 	_start.show()
@@ -134,11 +132,6 @@ func _on_help_back_pressed() -> void:
 func _on_pause_help_pressed() -> void:
 	_help.invoker = _pause
 	_help.show()
-
-
-func _on_round_won(_level: int) -> void:
-	_stats._totals_and_wins[2 * _level] = clampi(_stats._totals_and_wins[2 * _level] + 1, 0, 99999)
-	pass
 
 
 func _on_round_finished(_level: int) -> void:

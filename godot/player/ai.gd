@@ -85,7 +85,7 @@ static func _evaluate(my_card: Card, opp_card: Card, player_idx: int, gs: GameSt
 	var result: RoundResult.Value
 
 	# Resolve the round using GameLogic
-	result = GameLogic.resolve_round(my_card, opp_card)
+	result = GameLogic.resolve_round(my_card, opp_card, gs)
 
 	var score := 0.0
 

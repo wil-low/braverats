@@ -10,6 +10,7 @@ signal play_again_pressed
 @onready var total_score: Label = $TotalScore
 
 var _stats: Node = null
+var game_state: GameState = null
 
 
 func _on_button_pressed() -> void:
@@ -19,24 +20,24 @@ func _on_button_pressed() -> void:
 
 ## Fill in all labels with game data from GameState.
 ## Call after adding this scene to the tree.
-func show_game() -> void:
+func show_game(gs: GameState) -> void:
 	## Winner message (replicates original C++ layout)
-	var winner := GameState.get_winner()
+	var winner := gs.get_winner()
 	if winner >= 0:
 		message.text = "PLAYER %d WINS!" % (1 + winner)
-	elif GameState.scores[0] == GameState.scores[1]:
+	elif gs.scores[0] == gs.scores[1]:
 		message.text = "DRAW"
 	else:
-		message.text = "PLAYER %d WINS!" % (1 + (0 if GameState.scores[0] > GameState.scores[1] else 1))
+		message.text = "PLAYER %d WINS!" % (1 + (0 if gs.scores[0] > gs.scores[1] else 1))
 
 	## Game score (current round points)
-	game_score.text = "%d:%d" % [GameState.scores[0], GameState.scores[1]]
+	game_score.text = "%d:%d" % [gs.scores[0], gs.scores[1]]
 
 	## Round history — concatenated strings, P1 on top line, P0 on bottom line
 	## Each round: "CardName" + result indicator (P0 wins → bottom, P1 wins → top)
 	var p0_rounds := ""
 	var p1_rounds := ""
-	for entry in GameState.round_history:
+	for entry in gs.round_history:
 		var c0 := entry["card0"] as Card
 		var c1 := entry["card1"] as Card
 		var r := entry["result"] as RoundResult
@@ -75,8 +76,8 @@ func show_game() -> void:
 	if not _stats:
 		_stats = get_node_or_null("/root/Stats")
 	if _stats:
-		var p0_wins: int = _stats._totals_and_wins[2 * int(GameState.ai_levels[0]) + 1]
-		var p1_wins: int = _stats._totals_and_wins[2 * int(GameState.ai_levels[1]) + 1]
+		var p0_wins: int = _stats._totals_and_wins[2 * int(gs.ai_levels[0]) + 1]
+		var p1_wins: int = _stats._totals_and_wins[2 * int(gs.ai_levels[1]) + 1]
 		total_score.text = "%d : %d" % [p0_wins, p1_wins]
 	else:
 		total_score.text = "— : —"

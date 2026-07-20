@@ -29,6 +29,7 @@ signal save_stats
 var _game_over_scene: PackedScene = preload("res://game_over/game_over.tscn")
 var _game_over_node: GameOver = null
 
+var _game_state: GameState = GameState.new()
 var _round_active: bool = false
 
 
@@ -53,7 +54,7 @@ func init_players(_random_seed: int, _compact: bool) -> void:
 	_clear_animation_layer()
 	_game_over_node = null
 
-	GameState.new_game()
+	_game_state.new_game()
 	_prepare_deck()
 	await _deal_cards()
 	_update_display()
@@ -100,7 +101,7 @@ func _start_selection_phase() -> void:
 	_update_display()
 
 	# If P0 is human, wait for click. If AI, pick immediately.
-	if GameState.ai_levels[0] != GameState.AI_Level.Human:
+	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
 		_ai_select(0)
 
 
@@ -113,7 +114,7 @@ func _on_card_hand_clicked(hand: Deck, card_idx: int) -> void:
 	# Only allow P0 to click (Player 0 is the bottom hand)
 	if hand != _player_hand0:
 		return
-	if GameState.ai_levels[0] != GameState.AI_Level.Human:
+	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
 		return
 
 	var card := _player_hand0.get_child(card_idx) as Card
@@ -122,10 +123,10 @@ func _on_card_hand_clicked(hand: Deck, card_idx: int) -> void:
 	_player_hand0._reposition_cards()
 	card.set_selected(true)
 
-	GameState.hold_card0(card)
+	_game_state.hold_card0(card)
 
 	# If P1 AI has already selected, proceed to reveal
-	if GameState.held_cards1 != null:
+	if _game_state.held_cards1 != null:
 		_start_reveal()
 
 
@@ -144,12 +145,12 @@ func _ai_select(player_idx: int) -> void:
 
 	# Build opponent's known cards (face-down cards are unknown)
 	var opp_cards: Array[Card]
-	if GameState.is_spy_active(player_idx):
+	if _game_state.is_spy_active(player_idx):
 		# Spy reveals opponent's held card
-		if opponent_idx == 0 and GameState.held_cards0 != null:
-			opp_cards.append(GameState.held_cards0)
-		elif opponent_idx == 1 and GameState.held_cards1 != null:
-			opp_cards.append(GameState.held_cards1)
+		if opponent_idx == 0 and _game_state.held_cards0 != null:
+			opp_cards.append(_game_state.held_cards0)
+		elif opponent_idx == 1 and _game_state.held_cards1 != null:
+			opp_cards.append(_game_state.held_cards1)
 		# Also show any face-up opponent cards (shouldn't happen normally)
 		for c in opp_hand.get_children():
 			var found := false
@@ -162,7 +163,7 @@ func _ai_select(player_idx: int) -> void:
 	else:
 		opp_cards = []
 
-	var selected: Card = AI.select_card(my_cards, opp_cards, player_idx, GameState)
+	var selected: Card = AI.select_card(my_cards, opp_cards, player_idx, _game_state)
 	if selected == null:
 		selected = my_cards[randi() % my_cards.size()]
 
@@ -175,13 +176,13 @@ func _ai_select(player_idx: int) -> void:
 
 	# Store in GameState
 	if player_idx == 0:
-		GameState.hold_card0(selected)
+		_game_state.hold_card0(selected)
 	else:
-		GameState.hold_card1(selected)
+		_game_state.hold_card1(selected)
 
 	# If opponent already selected, proceed to reveal
-	var opponent_already := (player_idx == 0 and GameState.held_cards1 != null) or \
-							(player_idx == 1 and GameState.held_cards0 != null)
+	var opponent_already := (player_idx == 0 and _game_state.held_cards1 != null) or \
+							(player_idx == 1 and _game_state.held_cards0 != null)
 	if opponent_already:
 		_start_reveal()
 	else:
@@ -197,8 +198,8 @@ func _ai_select(player_idx: int) -> void:
 func _start_reveal() -> void:
 	_round_active = false
 
-	var c0 := GameState.held_cards0 as Card
-	var c1 := GameState.held_cards1 as Card
+	var c0 := _game_state.held_cards0 as Card
+	var c1 := _game_state.held_cards1 as Card
 	if c0 == null or c1 == null:
 		return
 
@@ -237,13 +238,13 @@ func _start_reveal() -> void:
 ## Resolve the current round: apply effects, update scores, animate.
 func _resolve_round(c0: Card, c1: Card) -> void:
 	# Apply General +2 effect to held card
-	if GameState.is_general_active(0):
+	if _game_state.is_general_active(0):
 		c0.set_power(c0.power)  # Flag that General effect is applied
-	if GameState.is_general_active(1):
+	if _game_state.is_general_active(1):
 		c1.set_power(c1.power)  # Flag that General effect is applied
 
 	# Resolve the round
-	var winner: int = GameState.resolve_current_round()
+	var winner: int = _game_state.resolve_current_round()
 
 	# Update scores and display
 	_update_display()
@@ -260,10 +261,10 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 	c1.queue_free()
 
 	# Clear effects after resolution
-	GameState.clear_effects()
+	_game_state.clear_effects()
 
 	# Check for winner
-	if GameState.is_game_over():
+	if _game_state.is_game_over():
 		_handle_game_over(winner)
 	else:
 		_advance_to_next_round()
@@ -281,7 +282,7 @@ func _handle_game_over(winner: int) -> void:
 	_game_over_node = _game_over_scene.instantiate() as GameOver
 	add_child(_game_over_node)
 	_game_over_node.show()
-	_game_over_node.show_game()
+	_game_over_node.show_game(_game_state)
 
 	if _game_over_node.play_again_pressed.is_connected(_on_play_again_pressed) == false:
 		_game_over_node.play_again_pressed.connect(_on_play_again_pressed)
@@ -294,7 +295,7 @@ func _advance_to_next_round() -> void:
 	await Animator.delay(delay_time)
 
 	# If game was interrupted (pause/exit), skip
-	if GameState.is_game_over():
+	if _game_state.is_game_over():
 		return
 
 	_round_active = true
@@ -312,25 +313,25 @@ func _advance_to_next_round() -> void:
 ## Update all display labels from GameState.
 func _update_display() -> void:
 	# Scores
-	_score0.text = str(GameState.scores[0])
-	_score1.text = str(GameState.scores[1])
+	_score0.text = str(_game_state.scores[0])
+	_score1.text = str(_game_state.scores[1])
 
 	# Plus / unrealized
-	if GameState.unrealized[0] > 0:
+	if _game_state.unrealized[0] > 0:
 		_plus0.visible = true
-		_unrealized0.text = str(GameState.unrealized[0])
+		_unrealized0.text = str(_game_state.unrealized[0])
 	else:
 		_plus0.visible = false
 
-	if GameState.unrealized[1] > 0:
+	if _game_state.unrealized[1] > 0:
 		_plus1.visible = true
-		_unrealized1.text = str(GameState.unrealized[1])
+		_unrealized1.text = str(_game_state.unrealized[1])
 	else:
 		_plus1.visible = false
 
 	# Effect indicators
-	_update_effect(_effect0, GameState.is_spy_active(0), GameState.is_general_active(0))
-	_update_effect(_effect1, GameState.is_spy_active(1), GameState.is_general_active(1))
+	_update_effect(_effect0, _game_state.is_spy_active(0), _game_state.is_general_active(0))
+	_update_effect(_effect1, _game_state.is_spy_active(1), _game_state.is_general_active(1))
 
 
 ## Show effect indicator sprite frame.
