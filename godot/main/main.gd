@@ -71,20 +71,22 @@ func _deal_cards() -> Signal:
 		# Deal to Player 0 (bottom)
 		var c := _deck.pop()
 		if c:
+			var pos := _player_hand0.get_append_position()
 			c.face_up = true
 			c.global_position = _deck.global_position
 			_player_hand0.add_child(c)
 			c.position = Vector2.ZERO
-			await Animator.move_card(c, _player_hand0.global_position + Vector2(0, i * 2), 0.15)
+			await Animator.move_card(c, pos, 0.15)
 
 		# Deal to Player 1 (top)
 		c = _deck.pop()
 		if c:
-			c.face_up = true
+			var pos := _player_hand1.get_append_position()
+			c.face_up = false
 			c.global_position = _deck.global_position
 			_player_hand1.add_child(c)
 			c.position = Vector2.ZERO
-			await Animator.move_card(c, _player_hand1.global_position + Vector2(0, i * 2), 0.15)
+			await Animator.move_card(c, pos, 0.15)
 
 	return Animator._immediate()
 

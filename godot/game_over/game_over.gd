@@ -60,8 +60,8 @@ func show_game(gs: GameState) -> void:
 				p0_mark = " —"
 				p1_mark = " —"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
-		p1_rounds += c1.power_name + p1_mark + "\n"
-		p0_rounds += c0.power_name + p0_mark + "\n"
+		p1_rounds += Card.POWER_NAMES[c1._power][0] + p1_mark + "\n"
+		p0_rounds += Card.POWER_NAMES[c0._power][0] + p0_mark + "\n"
 
 	## Remove trailing newline so label doesn't add extra spacing
 	if p0_rounds.ends_with("\n"):

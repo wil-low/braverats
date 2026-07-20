@@ -12,10 +12,12 @@ metadata/_edit_horizontal_guides_ = [24.0, 48.0]
 metadata/_edit_vertical_guides_ = [84.0, 42.0]
 
 [node name="PlayerHand1" parent="." unique_id=89891141 instance=ExtResource("2_pjrb6")]
-position = Vector2(30, -16)
+position = Vector2(45, -24)
 
 [node name="PlayerHand0" parent="." unique_id=885054453 instance=ExtResource("2_pjrb6")]
-position = Vector2(0, 21)
+position = Vector2(0, 13)
+columns = 4
+fan_offset = Vector2i(12, 18)
 
 [node name="DiscardMarker" type="Marker2D" parent="." unique_id=1639788791]
 position = Vector2(94, 19)

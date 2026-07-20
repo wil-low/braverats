@@ -6,14 +6,9 @@ var _selected_cards: Array[int] = []
 var _selected_card: int = -1
 
 @export var card_scene: PackedScene
-@export var fan_offset := 0
+@export var columns: int = 1 
+@export var fan_offset: Vector2i
 @export var max_show := -1  # -1 = no limit, 0..N = max fanned; extras stack under last
-
-const NUM_RANKS := 9  # A, 6-10, J, Q, K
-const RANKS_PER_TYPE := 4
-
-## Braverats: 8 unique cards per player (one of each type)
-const BRAVERATS_CARDS_PER_PLAYER := 8
 
 
 func clear() -> void:
@@ -26,46 +21,18 @@ func clear() -> void:
 			break
 
 
-func prepare_cheaters() -> void:
-	"""Prepare a 35-card deck: 9 ranks × 4 minus 1 random card."""
-	clear()
-	var card_ranks := []
-	for r in range(NUM_RANKS):
-		for _i in range(RANKS_PER_TYPE):
-			card_ranks.append(r)
-	
-	# Remove 1 random card before dealing
-	var remove_idx := randi() % card_ranks.size()
-	card_ranks.remove_at(remove_idx)
-	
-	card_ranks.shuffle()
-	
-	for r in card_ranks:
-		var c = card_scene.instantiate()
-		add_child(c)
-		c.rank = r
-
-
 func prepare_braverats() -> void:
 	"""Prepare a Braverats deck: 8 unique cards per player (16 total).
 	Each player gets one of each: Jester, Lady, Spy, Assassin,
 	Chancellor, Magician, General, Prince."""
 	clear()
-	var all_cards: Array[Card] = []
-	
+
 	# Create 8 unique cards for each player (16 total)
-	for _player in range(2):
-		for p in Card.Power.values():
+	for p in Card.Power.values():
+		for _player in range(2):
 			var c = card_scene.instantiate()
-			c.set_power(p)
-			all_cards.append(c)
-	
-	# Shuffle all cards together
-	all_cards.shuffle()
-	
-	# Add to deck
-	for c in all_cards:
-		add_child(c)
+			add_child(c)
+			c.power = p
 
 
 func pop() -> Card:
@@ -78,7 +45,8 @@ func pop() -> Card:
 
 func shift_to(idx: int) -> void:
 	for i in range(idx, get_child_count()):
-		var pos := Vector2(global_position.x + i * fan_offset, global_position.y)
+		var pos := Vector2(global_position.x + (i % columns) * fan_offset.x,
+			global_position.y + (i / columns) * fan_offset.y)
 		Animator.move_card(get_child(i), pos)
 
 
@@ -157,7 +125,9 @@ func get_selected_cards() -> Array[Card]:
 
 
 func get_append_position() -> Vector2:
-	return Vector2(global_position.x + get_child_count() * fan_offset, global_position.y)
+	var i := get_child_count()
+	return Vector2(global_position.x + (i % columns) * fan_offset.x,
+		global_position.y + int(i / columns) * fan_offset.y)
 
 
 func get_card_count() -> int:
