@@ -38,30 +38,35 @@ func show_game(gs: GameState) -> void:
 	var p0_rounds := ""
 	var p1_rounds := ""
 	for entry in gs.round_history:
-		var c0 := entry["card0"] as Card
-		var c1 := entry["card1"] as Card
-		var r := entry["result"] as RoundResult
-		## Result indicator: "!!" = Lady-Prince instant win, "+" = regular win
+		var p0_power := entry["card0"] as Card.Power
+		var p1_power := entry["card1"] as Card.Power
+		var pts := entry["points"] as int
+		var r = entry["result"] as RoundResult
+		## Result indicator: "!!" = Lady-Prince instant win, "++" = 2 points, "+" = 1 point
 		var p0_mark := ""
 		var p1_mark := ""
 		match r.value:
 			RoundResult.Value.PLAYER0_WINS:
 				## Check if it was an instant Lady vs Prince
-				if c0.power == Card.Power.Lady and c1.power == Card.Power.Prince:
+				if p0_power == Card.Power.Lady and p1_power == Card.Power.Prince:
 					p0_mark = " !!"
+				elif pts == 2:
+					p0_mark = " ++"
 				else:
 					p0_mark = " +"
 			RoundResult.Value.PLAYER1_WINS:
-				if c1.power == Card.Power.Lady and c0.power == Card.Power.Prince:
+				if p1_power == Card.Power.Lady and p0_power == Card.Power.Prince:
 					p1_mark = " !!"
+				elif pts == 2:
+					p1_mark = " ++"
 				else:
 					p1_mark = " +"
 			RoundResult.Value.HOLD:
 				p0_mark = " —"
 				p1_mark = " —"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
-		p1_rounds += Card.POWER_NAMES[c1._power][0] + p1_mark + "\n"
-		p0_rounds += Card.POWER_NAMES[c0._power][0] + p0_mark + "\n"
+		p1_rounds += Card.POWER_NAMES[p1_power][0] + p1_mark + "\n"
+		p0_rounds += Card.POWER_NAMES[p0_power][0] + p0_mark + "\n"
 
 	## Remove trailing newline so label doesn't add extra spacing
 	if p0_rounds.ends_with("\n"):

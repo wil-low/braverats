@@ -104,10 +104,18 @@ func resolve_current_round() -> bool:
 	# Resolve the round
 	var result: RoundResult.Value = GameLogic.resolve_round(held_cards0, held_cards1, self)
 
+	# Calculate points for this round (1 normally, 2 if Chancellor wins against non-Magician)
+	var points: int = 1
+	if result == RoundResult.Value.PLAYER0_WINS and held_cards0.power == Card.Power.Chancellor and held_cards1.power != Card.Power.Magician:
+		points = 2
+	elif result == RoundResult.Value.PLAYER1_WINS and held_cards1.power == Card.Power.Chancellor and held_cards0.power != Card.Power.Magician:
+		points = 2
+
 	# Record in history
 	var entry := {
-		"card0": held_cards0,
-		"card1": held_cards1,
+		"card0": held_cards0.power,
+		"card1": held_cards1.power,
+		"points": points,
 		"result": result,
 		"round": round_count,
 	}
@@ -123,12 +131,12 @@ func resolve_current_round() -> bool:
 			unrealized[winner_idx] += held_rounds
 			held_rounds = 0
 
-	# Update scores
+	# Update scores with correct points
 	match result:
 		RoundResult.Value.PLAYER0_WINS:
-			scores[0] += 1
+			scores[0] += points
 		RoundResult.Value.PLAYER1_WINS:
-			scores[1] += 1
+			scores[1] += points
 		RoundResult.Value.HOLD:
 			pass # No score change for hold
 
