@@ -43,6 +43,9 @@ horizontal_alignment = 1
 [node name="Played1" type="Marker2D" parent="." unique_id=981826023]
 position = Vector2(55, 2)
 
+[node name="Played0" type="Marker2D" parent="." unique_id=126014041]
+position = Vector2(55, 22)
+
 [node name="Effect1" type="Sprite2D" parent="." unique_id=1782000436]
 visible = false
 position = Vector2(75, 0)
@@ -104,9 +107,6 @@ position = Vector2(75, 27)
 texture = ExtResource("4_4dugh")
 offset = Vector2(3.5, 6)
 hframes = 8
-
-[node name="Played0" type="Marker2D" parent="." unique_id=126014041]
-position = Vector2(55, 22)
 
 [node name="Score0" type="Label" parent="." unique_id=1950343938]
 anchors_preset = 8

@@ -11,6 +11,9 @@ signal save_stats
 @onready var _player_hand1: Deck = $PlayerHand1
 @onready var _animation_layer: Node2D = $AnimationLayer
 
+@onready var _played_1: Marker2D = $Played1
+@onready var _played_0: Marker2D = $Played0
+
 @onready var _score0: Label = $Score0
 @onready var _score1: Label = $Score1
 @onready var _unrealized0: Label = $Unrealized0
@@ -75,7 +78,7 @@ func _deal_cards() -> Signal:
 			_player_hand0.add_child(c)
 			c.position = Vector2.ZERO
 			await Animator.move_card(c, pos, 0.15)
-			c.pressed.connect(_on_card_hand_clicked)
+			c.pressed.connect(_on_card_hand_clicked.bind(c))
 
 		# Deal to Player 1 (top)
 		c = _deck.pop()
@@ -100,6 +103,8 @@ func _start_selection_phase() -> void:
 	# If P0 is human, wait for click. If AI, pick immediately.
 	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
 		_ai_select(0)
+	if _game_state.ai_levels[1] != GameState.AI_Level.Human:
+		_ai_select(1)
 
 
 # ─── Human Input ────────────────────────────────────────────────────────────
@@ -112,6 +117,9 @@ func _on_card_hand_clicked(card: Card) -> void:
 	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
 		return
 
+	card.pressed.disconnect(_on_card_hand_clicked)
+	_played_0.add_child(card)
+	await Animator.move_card(card, _played_0.global_position, 0.5)
 	_game_state.hold_card0(card)
 
 	# If P1 AI has already selected, proceed to reveal
@@ -153,21 +161,19 @@ func _ai_select(player_idx: int) -> void:
 		opp_cards = []
 
 	var selected: Card = AI.select_card(my_cards, opp_cards, player_idx, _game_state)
-	if selected == null:
-		selected = my_cards[randi() % my_cards.size()]
-
-	# Animate: move selected card to front and highlight
-	var idx := selected.get_index()
-	my_hand._selected_card = idx
-	my_hand._move_card_to_end(idx)
-	my_hand._reposition_cards()
-	selected.set_selected(true)
-
+	
+	var tgt: Marker2D
 	# Store in GameState
 	if player_idx == 0:
+		tgt = _played_0
 		_game_state.hold_card0(selected)
 	else:
+		tgt = _played_1
 		_game_state.hold_card1(selected)
+
+	tgt.add_child(selected)
+	await Animator.move_card(selected, tgt.global_position, 0.5)
+
 
 	# If opponent already selected, proceed to reveal
 	var opponent_already := (player_idx == 0 and _game_state.held_cards1 != null) or \
@@ -177,8 +183,8 @@ func _ai_select(player_idx: int) -> void:
 	else:
 		# AI opponent picks after brief delay (simulates thinking time)
 		await Animator.delay(0.3)
-		if _round_active:
-			_ai_select(1 - player_idx)
+		#if _round_active:
+		#	_ai_select(1 - player_idx)
 
 
 # ─── Reveal Phase ───────────────────────────────────────────────────────────
@@ -189,28 +195,6 @@ func _start_reveal() -> void:
 
 	var c0 := _game_state.held_cards0 as Card
 	var c1 := _game_state.held_cards1 as Card
-	if c0 == null or c1 == null:
-		return
-
-	# Clear selection highlights
-	c0.set_selected(false)
-	c1.set_selected(false)
-
-	# Store card positions for animation
-	var pos0 := c0.global_position
-	var pos1 := c1.global_position
-
-	# Move cards to table positions (face-down)
-	c0.global_position = pos0
-	c1.global_position = pos1
-	c0.face_up = false
-	c1.face_up = false
-
-	# Animate move to table positions
-	var dest0: Vector2 = $Played0.global_position
-	var dest1: Vector2 = $Played1.global_position
-	await Animator.move_card(c0, dest0, 0.4)
-	await Animator.move_card(c1, dest1, 0.4)
 
 	# Brief pause, then reveal
 	await Animator.delay(0.2)
@@ -288,11 +272,6 @@ func _advance_to_next_round() -> void:
 		return
 
 	_round_active = true
-	_player_hand0.clear_selection()
-	_player_hand1.clear_selection()
-	_player_hand0._selected_card = -1
-	_player_hand1._selected_card = -1
-
 	_update_display()
 	_start_selection_phase()
 
