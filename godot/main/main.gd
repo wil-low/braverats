@@ -216,7 +216,27 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 		c1.set_power(c1.power)  # Flag that General effect is applied
 
 	# Resolve the round
-	var winner: int = _game_state.resolve_current_round()
+
+	# Step 1: Resolve the round (determine result + effects)
+	_game_state = GameLogic.resolve_round(_game_state.held_cards0, _game_state.held_cards1, _game_state)
+
+	# Step 2: Finalize round state (update history, scores, held rounds)
+	GameLogic.finalize_round(_game_state, _game_state.held_cards0, _game_state.held_cards1, _game_state.last_result)
+
+	# Step 3: Increment round counter
+	_game_state.round_count += 1
+
+	# Track Lady vs Prince instant win (already set in resolve_round)
+	# lady_beats_prince_player is set inside resolve_round
+
+	# Clear held cards
+	_game_state.held_cards0 = null
+	_game_state.held_cards1 = null
+
+	# Step 4: Check winner
+	var winner: int = GameLogic.check_winner(_game_state)
+	if winner >= 0:
+		_game_state.game_over = true
 
 	# Update scores and display
 	_update_display()

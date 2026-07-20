@@ -27,120 +27,146 @@ extends RefCounted
 # ─── Core Functions ─────────────────────────────────────────────────────────
 
 ## Resolve a single round given both players' cards.
-## Returns a RoundResult.
-## Updates GameState with the result (called by GameState).
-##
-## Special interactions:
-## - Both play same card → effects cancel (except Jester→hold, General→both get +2)
-## - Jester nullifies opponent's effect entirely
-## - Lady instant-wins only if opponent played Prince
-## - General +2 applies to current card, persists, not nullifiable
-## - Assassin inverts result (applies after other effects)
-## - Prince wins vs all except Lady and Assassin
-static func resolve_round(card0: Card, card1: Card, gs: GameState) -> GameState.RoundResult:
-	# ─── Both play same card ─────────────────────────────────────────────
-	if card0.power == card1.power:
-		match card0.power:
-			Card.Power.Jester:
-				return GameState.RoundResult.HOLD # Jester vs Jester → hold
-			Card.Power.General:
-				# Both get +2 to next card (persistent effect)
-				gs.effects[0] = Card.Power.General
-				gs.effects[1] = Card.Power.General
-				# Same power = tie → Player0 wins (first to act in original)
-				return GameState.RoundResult.PLAYER0_WINS
-			_:
-				# Same card: compare strength (equal), Player0 wins ties
-				return GameState.RoundResult.PLAYER0_WINS
+## Mirrors resolve_round() in braverats/core.cpp:
+##  1. Apply General +2 to base values (from carried effect)
+##  2. Clear effects immediately
+##  3. Compare values
+##  4. If neither card is Magician:
+##     - Jester or equal values → Hold
+##     - Assassin inverts comparison
+##     - Spy/General set next-round effects
+##     - Prince vs Lady → instant game win
+static func resolve_round(card0: Card, card1: Card, gs: GameState) -> GameState:
+	var new_state = gs.duplicate()
+	# Step 1: Apply General +2 to base card power values
+	var p0_value: int = card0.power
+	var p1_value: int = card1.power
+	if gs.effects[0] == Card.Power.General:
+		p0_value += 2
+	if gs.effects[1] == Card.Power.General:
+		p1_value += 2
 
-	# ─── Step 1: Magician nullifies opponent's effect (before General) ──
-	# General's +2 is persistent and NOT nullifiable — it only flags for next round.
-	# Magician nullifies the opponent's card EFFECT but not General's persistent +2.
-	var nullified0: bool = card0.power == Card.Power.Magician
-	var nullified1: bool = card1.power == Card.Power.Magician
+	# Step 2: Clear effects immediately (General already applied above)
+	new_state.effects[0] = Card.Power.Jester
+	new_state.effects[1] = Card.Power.Jester
 
-	# ─── Step 2: Jester nullifies opponent's card (overrides all effects) ─
-	# Jester beats Magician (Jester nullifies Magician's effect too).
-	# Jester nullifies everything including Prince → hold.
-	if card0.power == Card.Power.Jester or card1.power == Card.Power.Jester:
-		return GameState.RoundResult.HOLD
-
-	# ─── Step 3: Lady vs Prince instant win (not nullifiable) ────────────
-	if card0.power == Card.Power.Lady and card1.power == Card.Power.Prince:
-		return GameState.RoundResult.PLAYER0_WINS
-	if card1.power == Card.Power.Lady and card0.power == Card.Power.Prince:
-		return GameState.RoundResult.PLAYER1_WINS
-
-	# ─── Step 4: Compute effective power for comparison ──────────────────
-	# General does NOT boost current card — only flags for next round.
-	# Magician nullifies opponent's effect (sets their effective power to 0).
-	var power0: int = card0.power
-	var power1: int = card1.power
-	if card0.power == Card.Power.General:
-		gs.effects[0] = Card.Power.General # Flag for next round
-	if card1.power == Card.Power.General:
-		gs.effects[1] = Card.Power.General # Flag for next round
-
-	# Apply nullification (Magician sets opponent to 0, but NOT General)
-	if nullified0:
-		if card0.power != Card.Power.General:
-			power0 = 0
-	if nullified1:
-		if card1.power != Card.Power.General:
-			power1 = 0
-
-	# ─── Step 5: Base strength comparison ────────────────────────────────
-	var comparison: int
-	if power0 > power1:
-		comparison = 1 # Player0 wins
-	elif power1 > power0:
-		comparison = -1 # Player1 wins
+	# Step 3: Initial result based on value comparison
+	if p0_value > p1_value:
+		new_state.last_result = GameState.RoundResult.PLAYER0_WINS
+	elif p1_value > p0_value:
+		new_state.last_result = GameState.RoundResult.PLAYER1_WINS
 	else:
-		comparison = 1 # Tie: Player0 wins (first to act in original)
+		new_state.last_result = GameState.RoundResult.HOLD
 
-	# ─── Step 6: Assassin inverts result ─────────────────────────────────
-	# Lowest strength wins. Does NOT override Prince or Lady (already handled above).
-	if card0.power == Card.Power.Assassin:
-		comparison = - comparison
-	if card1.power == Card.Power.Assassin:
-		comparison = - comparison
+	# Step 4: If neither card is Magician, apply special effects
+	if card0.power != Card.Power.Magician and card1.power != Card.Power.Magician:
+		# Jester or equal values → Hold (overrides everything)
+		if p0_value == p1_value or card0.power == Card.Power.Jester or \
+		   card1.power == Card.Power.Jester:
+			new_state.last_result = GameState.RoundResult.HOLD
+			return new_state
 
-	# Double inversion (both Assassin) → original result preserved
-	if card0.power == Card.Power.Assassin and card1.power == Card.Power.Assassin:
-		comparison = 1 # Tie: Player0 wins
+		# Cards must be different for special effects below
+		if card0.power != card1.power:
+			# Assassin inverts comparison (lowest wins)
+			if card0.power == Card.Power.Assassin or \
+			   card1.power == Card.Power.Assassin:
+				if p0_value < p1_value:
+					new_state.last_result = GameState.RoundResult.PLAYER0_WINS
+				else:
+					new_state.last_result = GameState.RoundResult.PLAYER1_WINS
 
-	# ─── Step 7: Spy effect flag (carried forward to next round) ────────
-	if card0.power == Card.Power.Spy:
-		gs.effects[0] = Card.Power.Spy
-	if card1.power == Card.Power.Spy:
-		gs.effects[1] = Card.Power.Spy
+			# Spy: next round opponent reveals first
+			if card0.power == Card.Power.Spy:
+				new_state.effects[0] = Card.Power.Spy
+			if card1.power == Card.Power.Spy:
+				new_state.effects[1] = Card.Power.Spy
 
-	# ─── Step 8: Chancellor tracking ─────────────────────────────────────
-	# Chancellor counts as 2 points if this player wins the round
-	if comparison == 1 and card0.power == Card.Power.Chancellor:
-		gs.chancellor_points[0] += 2
-	if comparison == -1 and card1.power == Card.Power.Chancellor:
-		gs.chancellor_points[1] += 2
+			# General: next card gets +2
+			if card0.power == Card.Power.General:
+				new_state.effects[0] = Card.Power.General
+			if card1.power == Card.Power.General:
+				new_state.effects[1] = Card.Power.General
 
-	# ─── Return result ───────────────────────────────────────────────────
-	match comparison:
-		1:
-			return GameState.RoundResult.PLAYER0_WINS
-		-1:
-			return GameState.RoundResult.PLAYER1_WINS
-		_:
-			return GameState.RoundResult.HOLD
+			# Prince vs Lady: instant game win for Lady
+			if card0.power == Card.Power.Prince:
+				if card1.power == Card.Power.Lady:
+					new_state.last_result = GameState.RoundResult.PLAYER1_WINS_GAME
+				else:
+					new_state.last_result = GameState.RoundResult.PLAYER0_WINS
+			if card1.power == Card.Power.Prince:
+				if card0.power == Card.Power.Lady:
+					new_state.last_result = GameState.RoundResult.PLAYER0_WINS_GAME
+				else:
+					new_state.last_result = GameState.RoundResult.PLAYER1_WINS
 
-## Move cards from one collection to another.
-## Used for: discard pile, draw pile, round history.
-## Returns the number of cards moved.
-static func move_cards(source: Array[Card], target: Array[Card]) -> int:
-	var count: int = 0
-	for card in source:
-		target.append(card)
-		count += 1
-	source.clear()
-	return count
+	return new_state
+
+## Finalize round state after resolution.
+## Mirrors move_cards() in braverats/core.cpp (except card removal).
+## Walks ALL rounds, resolves held rounds, applies points.
+static func finalize_round(gs: GameState, card0: Card, card1: Card, result: GameState.RoundResult) -> void:
+	# Record round in history
+	var points: int = 1
+	var entry := {
+		"card0": card0.power if card0 else Card.Power.Jester,
+		"card1": card1.power if card1 else Card.Power.Jester,
+		"points": points,
+		"result": result,
+		"round": gs.round_count,
+	}
+	gs.round_history.append(entry)
+
+	gs.scores[0] = 0
+	gs.scores[1] = 0
+
+	if result == GameState.RoundResult.PLAYER0_WINS_GAME:
+		gs.scores[0] = 100
+	elif result == GameState.RoundResult.PLAYER1_WINS_GAME:
+		gs.scores[1] = 100
+	else:
+		# Reset unrealized for held round resolution
+		gs.unrealized[0] = 0
+		gs.unrealized[1] = 0
+
+		# Walk through ALL rounds — mirrors C++ move_cards loop
+		for i in range(gs.round_history.size()):
+			var h: Dictionary = gs.round_history[i]
+			var rr: GameState.RoundResult = h.result
+
+			# If this round was Hold, resolve it to current decisive result
+			if rr == GameState.RoundResult.HOLD:
+				h["result"] = result
+				rr = result
+
+			# Determine points for this round
+			match rr:
+				GameState.RoundResult.PLAYER0_WINS:
+					if h.card0 == Card.Power.Chancellor and h.card1 != Card.Power.Magician:
+						points = 2
+						gs.scores[0] += 2
+					else:
+						gs.scores[0] += 1
+				GameState.RoundResult.PLAYER1_WINS:
+					if h.card1 == Card.Power.Chancellor and h.card0 != Card.Power.Magician:
+						points = 2
+						gs.scores[1] += 2
+					else:
+						gs.scores[1] += 1
+				GameState.RoundResult.HOLD:
+					# Still Hold — add to unrealized
+					if h.card0 == Card.Power.Chancellor:
+						gs.unrealized[0] += 2
+					else:
+						gs.unrealized[0] += 1
+					if h.card1 == Card.Power.Chancellor:
+						gs.unrealized[1] += 2
+					else:
+						gs.unrealized[1] += 1
+
+		# Update current round entry points
+		var last: Dictionary = gs.round_history.back()
+		last["points"] = points
 
 ## Check if the game has ended (someone reached target score or all rounds played).
 ## Returns: -1 = game ongoing, 0 = Player0 wins, 1 = Player1 wins, 2 = draw
@@ -179,6 +205,5 @@ static func new_game(gs: GameState) -> void:
 	gs.game_over = false
 	gs.round_count = 0
 	gs.round_history.clear()
-	gs.pending_cmd = false
 	gs.held_cards0 = null
 	gs.held_cards1 = null

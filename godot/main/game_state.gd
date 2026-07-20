@@ -1,5 +1,5 @@
 class_name GameState
-extends RefCounted
+extends Node
 
 ## Centralized game state for Braverats.
 ## Acts as a single source of truth for game flow.
@@ -27,6 +27,8 @@ enum RoundResult {
 	PLAYER0_WINS = 0,
 	PLAYER1_WINS = 1,
 	HOLD = 2,  # Round nullified / on hold
+	PLAYER0_WINS_GAME = 3,
+	PLAYER1_WINS_GAME = 4,
 }
 
 const AI_LEVEL_NAMES := ["Human", "L1", "L2"]
@@ -45,6 +47,8 @@ var ai_levels: Array[AI_Level] = [AI_Level.Human, AI_Level.Level_1]
 ## Cards currently selected by each player (one card each, not yet played)
 var held_cards0: Card = null
 var held_cards1: Card = null
+
+var last_result: RoundResult
 
 ## Round history: each entry is a Dictionary with keys:
 ##   card0, card1, result, player0_wins_round
@@ -73,9 +77,6 @@ var round_count: int = 0
 ## Player index who won via Lady vs Prince instant win (-1 = none)
 var lady_beats_prince_player: int = -1
 
-## Flag: player has selected a card, waiting for opponent
-var pending_cmd: bool = false
-
 ## Flag: game has ended
 var game_over: bool = false
 
@@ -90,7 +91,6 @@ func new_game() -> void:
 	held_cards1 = null
 	round_count = 0
 	lady_beats_prince_player = -1
-	pending_cmd = false
 	game_over = false
 	round_history.clear()
 
@@ -101,72 +101,6 @@ func hold_card0(card: Card) -> void:
 ## Set the card Player 1 has selected.
 func hold_card1(card: Card) -> void:
 	held_cards1 = card
-
-## Resolve the current round. Both players must have selected a card.
-## Returns true if the round was resolved (both cards selected).
-func resolve_current_round() -> bool:
-	if held_cards0 == null or held_cards1 == null:
-		return false
-
-	# Resolve the round
-	var result: RoundResult = GameLogic.resolve_round(held_cards0, held_cards1, self)
-
-	# Calculate points for this round (1 normally, 2 if Chancellor wins against non-Magician)
-	var points: int = 1
-	if result == RoundResult.PLAYER0_WINS and held_cards0.power == Card.Power.Chancellor and held_cards1.power != Card.Power.Magician:
-		points = 2
-	elif result == RoundResult.PLAYER1_WINS and held_cards1.power == Card.Power.Chancellor and held_cards0.power != Card.Power.Magician:
-		points = 2
-
-	# Record in history
-	var entry := {
-		"card0": held_cards0.power,
-		"card1": held_cards1.power,
-		"points": points,
-		"result": result,
-		"round": round_count,
-	}
-	round_history.append(entry)
-
-	# Track held rounds
-	if result == RoundResult.HOLD:
-		held_rounds += 1
-	else:
-		# Resolve held rounds: decisive winner takes all held rounds
-		if held_rounds > 0:
-			var winner_idx: int = result as int
-			unrealized[winner_idx] += held_rounds
-			held_rounds = 0
-
-	# Update scores with correct points
-	match result:
-		RoundResult.PLAYER0_WINS:
-			scores[0] += points
-		RoundResult.PLAYER1_WINS:
-			scores[1] += points
-		RoundResult.HOLD:
-			pass # No score change for hold
-
-	# Track Lady vs Prince instant win
-	if held_cards0.power == Card.Power.Lady and held_cards1.power == Card.Power.Prince:
-		lady_beats_prince_player = 0
-	elif held_cards1.power == Card.Power.Lady and held_cards0.power == Card.Power.Prince:
-		lady_beats_prince_player = 1
-
-	# Clear held cards
-	held_cards0 = null
-	held_cards1 = null
-	pending_cmd = false
-
-	# Increment round counter
-	round_count += 1
-
-	# Check winner
-	var winner: int = GameLogic.check_winner(self)
-	if winner >= 0:
-		game_over = true
-
-	return true
 
 ## Get the result of the last resolved round.
 func get_last_round_result() -> RoundResult:
