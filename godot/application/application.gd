@@ -6,6 +6,7 @@ extends Node2D
 @onready var _stats: Stats = $Stats
 @onready var _help: Node2D = $Help
 @onready var _pause: Node2D = $Pause
+@onready var _game_over: GameOver = $GameOver
 
 @export var random_seed: int = 0
 @export var speed_run: bool = false
@@ -30,6 +31,7 @@ func _ready() -> void:
 		Engine.print_to_stdout = false
 		_main.round_finished.disconnect(_on_round_finished)
 		_main.save_stats.disconnect(save_config)
+		_main.game_over.disconnect(_on_game_over)
 		_main.init_players(42, false)
 	else:
 		load_config()
@@ -37,8 +39,8 @@ func _ready() -> void:
 
 func save_config() -> void:
 	var config = ConfigFile.new()
-	for i in _main.game_state.ai_levels.size():
-		config.set_value("AI_Level", "P" + str(i), _main.game_state.ai_levels[i])
+	for i in _main._game_state.ai_levels.size():
+		config.set_value("AI_Level", "P" + str(i), _main._game_state.ai_levels[i])
 	config.set_value("Gameplay", "speed", _level_selector._speed_level.level)
 	config.set_value("Gameplay", "compact", _level_selector._compact)
 	config.set_value("Gameplay", "totals_and_wins", _stats._totals_and_wins)
@@ -56,11 +58,11 @@ func load_config() -> bool:
 	for i in 2:
 		var ai_level = config.get_value("AI_Level", "P" + str(i))
 		if ai_level != null:
-			_main.game_state.ai_levels[i] = ai_level as GameState.AI_Level
+			_main._game_state.ai_levels[i] = ai_level as GameState.AI_Level
 
 	var speed = clamp(config.get_value("Gameplay", "speed"), SpeedLevel._min_speed, SpeedLevel._max_speed)
 	var compact = config.get_value("Gameplay", "compact", false)
-	_level_selector.set_levels(_main.game_state.ai_levels, compact, speed)
+	_level_selector.set_levels(_main._game_state.ai_levels, compact, speed)
 	_stats._totals_and_wins = config.get_value("Gameplay", "totals_and_wins", [])
 	if _stats._totals_and_wins == []:
 		_stats._on_reset_button_pressed()
@@ -68,7 +70,7 @@ func load_config() -> bool:
 
 
 func _on_level_selector_levels_changed(levels: Array[GameState.AI_Level], compact: bool, speed: int) -> void:
-	_main.game_state.ai_levels = levels
+	_main._game_state.ai_levels = levels
 	Animator._speed = pow(2, speed)
 	save_config()
 	_start.show()
@@ -80,7 +82,20 @@ func _on_main_menu_pressed() -> void:
 	_pause.show()
 
 
+func _on_game_over(_winner: int) -> void:
+	_main.hide()
+	_game_over.show()
+	_game_over.show_game(_main._game_state)
+
+
+func _on_game_over_play_again() -> void:
+	_game_over.hide()
+	_main.show()
+	_main.start_new_game()
+
+
 func _on_start_play_pressed() -> void:
+	_game_over.hide()
 	_main.show()
 	_main.init_players(random_seed if random_seed != 0 else Time.get_ticks_usec(), _level_selector._compact)
 

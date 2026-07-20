@@ -4,6 +4,7 @@ extends Node2D
 signal menu_pressed
 signal round_finished(ai_level: int)
 signal save_stats
+signal game_over(winner: int)
 
 
 @onready var _deck: Deck = $Deck
@@ -26,9 +27,6 @@ signal save_stats
 @onready var _deal_audio: AudioStreamPlayer = $DealAudioPlayer
 @onready var _round_over_audio: AudioStreamPlayer = $RoundOverAudioPlayer
 @onready var _game_over_audio: AudioStreamPlayer = $GameOverAudioPlayer
-
-var _game_over_scene: PackedScene = preload("res://game_over/game_over.tscn")
-var _game_over_node: GameOver = null
 
 var _game_state: GameState = GameState.new()
 var _round_active: bool = false
@@ -53,7 +51,6 @@ func init_players(_random_seed: int, _compact: bool) -> void:
 	_player_hand0.clear()
 	_player_hand1.clear()
 	_clear_animation_layer()
-	_game_over_node = null
 
 	_game_state.new_game()
 	_prepare_deck()
@@ -253,14 +250,8 @@ func _handle_game_over(winner: int) -> void:
 
 	await Animator.delay(1.5)
 
-	# Load game over scene
-	_game_over_node = _game_over_scene.instantiate() as GameOver
-	add_child(_game_over_node)
-	_game_over_node.show()
-	_game_over_node.show_game(_game_state)
-
-	if _game_over_node.play_again_pressed.is_connected(_on_play_again_pressed) == false:
-		_game_over_node.play_again_pressed.connect(_on_play_again_pressed)
+	# Notify application to show game over screen
+	game_over.emit(winner)
 
 
 ## Advance to next round (auto-advance).
@@ -276,6 +267,13 @@ func _advance_to_next_round() -> void:
 	_round_active = true
 	_update_display()
 	_start_selection_phase()
+
+
+# ─── Restart ────────────────────────────────────────────────────────────────
+
+## Called by application when play-again is pressed.
+func start_new_game() -> void:
+	init_players(0, false)
 
 
 # ─── UI Updates ─────────────────────────────────────────────────────────────
@@ -308,15 +306,6 @@ func _update_effect(sprite: Sprite2D, is_spy: bool, is_general: bool) -> void:
 		sprite.frame = 6  # General frame
 	else:
 		sprite.visible = false
-
-
-# ─── Restart ────────────────────────────────────────────────────────────────
-
-func _on_play_again_pressed() -> void:
-	if _game_over_node:
-		_game_over_node.queue_free()
-		_game_over_node = null
-	init_players(0, false)
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────

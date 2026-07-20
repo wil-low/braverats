@@ -42,40 +42,31 @@ func show_game(gs: GameState) -> void:
 		var p1_power := entry["card1"] as Card.Power
 		var pts := entry["points"] as int
 		var r: GameState.RoundResult = entry["result"]
-		## Result indicator: "!!" = Lady-Prince instant win, "++" = 2 points, "+" = 1 point
-		var p0_mark := ""
-		var p1_mark := ""
+		## Result indicator: "!" = Lady-Prince instant win, "#" = 2 points, "+" = 1 point
+		var p0_mark := " "
+		var p1_mark := " "
 		match r:
 			GameState.RoundResult.PLAYER0_WINS:
 				## Check if it was an instant Lady vs Prince
 				if p0_power == Card.Power.Lady and p1_power == Card.Power.Prince:
-					p0_mark = " !!"
+					p0_mark = "!"
 				elif pts == 2:
-					p0_mark = " ++"
+					p0_mark = "#"
 				else:
-					p0_mark = " +"
+					p0_mark = "+"
 			GameState.RoundResult.PLAYER1_WINS:
 				if p1_power == Card.Power.Lady and p0_power == Card.Power.Prince:
-					p1_mark = " !!"
+					p1_mark = "!"
 				elif pts == 2:
-					p1_mark = " ++"
+					p1_mark = "#"
 				else:
-					p1_mark = " +"
-			GameState.RoundResult.HOLD:
-				p0_mark = " —"
-				p1_mark = " —"
+					p1_mark = "+"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
-		p1_rounds += Card.POWER_NAMES[p1_power][0] + p1_mark + "\n"
-		p0_rounds += Card.POWER_NAMES[p0_power][0] + p0_mark + "\n"
+		p1_rounds += Card.POWER_NAMES[p1_power][0] + p1_mark
+		p0_rounds += Card.POWER_NAMES[p0_power][0] + p0_mark
 
-	## Remove trailing newline so label doesn't add extra spacing
-	if p0_rounds.ends_with("\n"):
-		p0_rounds = p0_rounds.substr(0, p0_rounds.length() - 1)
-	if p1_rounds.ends_with("\n"):
-		p1_rounds = p1_rounds.substr(0, p1_rounds.length() - 1)
-
-	rounds_1.text = p1_rounds if not p1_rounds.is_empty() else "—"
-	rounds_0.text = p0_rounds if not p0_rounds.is_empty() else "—"
+	rounds_1.text = p1_rounds if not p1_rounds.is_empty() else "-"
+	rounds_0.text = p0_rounds if not p0_rounds.is_empty() else "-"
 
 	## Career victories per mode (original: _players[x]._victory_count at y=41)
 	if not _stats:
@@ -85,4 +76,4 @@ func show_game(gs: GameState) -> void:
 		var p1_wins: int = _stats._totals_and_wins[2 * int(gs.ai_levels[1]) + 1]
 		total_score.text = "%d : %d" % [p0_wins, p1_wins]
 	else:
-		total_score.text = "— : —"
+		total_score.text = "- : -"

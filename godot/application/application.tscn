@@ -39,6 +39,7 @@ visible = false
 [connection signal="play_pressed" from="Start" to="." method="_on_start_play_pressed"]
 [connection signal="settings_pressed" from="Start" to="." method="_on_start_settings_pressed"]
 [connection signal="stats_pressed" from="Start" to="." method="_on_start_stats_pressed"]
+[connection signal="game_over" from="Main" to="." method="_on_game_over"]
 [connection signal="menu_pressed" from="Main" to="." method="_on_main_menu_pressed"]
 [connection signal="round_finished" from="Main" to="." method="_on_round_finished"]
 [connection signal="save_stats" from="Main" to="." method="save_config"]
@@ -49,3 +50,4 @@ visible = false
 [connection signal="levels_changed" from="LevelSelector" to="." method="_on_level_selector_levels_changed"]
 [connection signal="back_pressed" from="Stats" to="." method="_on_stats_back_pressed"]
 [connection signal="back_pressed" from="Help" to="." method="_on_help_back_pressed"]
+[connection signal="play_again_pressed" from="GameOver" to="." method="_on_game_over_play_again"]
