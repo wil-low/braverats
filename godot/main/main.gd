@@ -291,6 +291,20 @@ func _handle_game_over(winner: GameState.RoundResult) -> void:
 
 	await Animator.delay(1.5)
 
+	# Determine if there's a winner (PLAYER0_WINS_GAME=3, PLAYER1_WINS_GAME=4)
+	var winner_idx: int = -1
+	if winner == GameState.RoundResult.PLAYER0_WINS_GAME:
+		round_won.emit(_game_state.ai_levels[0])
+	elif winner == GameState.RoundResult.PLAYER1_WINS_GAME:
+		round_won.emit(_game_state.ai_levels[1])
+
+	# Emit round_finished for both players
+	for player_idx in range(2):
+		round_finished.emit(_game_state.ai_levels[player_idx])
+
+	# Emit save_stats
+	save_stats.emit()
+
 	# Notify application to show game over screen
 	game_over.emit(winner)
 
