@@ -166,28 +166,7 @@ func _ai_select(player_idx: int, known_opponent_card: Card = null) -> void:
 	for c in my_hand.get_children():
 		my_cards.append(c as Card)
 
-	# Build opponent's known cards
-	var opp_cards: Array[Card]
-	if known_opponent_card != null:
-		# Direct knowledge (spy-holder knows opponent's card)
-		opp_cards.append(known_opponent_card)
-	elif _game_state.is_spy_active(player_idx):
-		# Spy effect: reveal opponent's already-held card
-		if opponent_idx == 0 and _game_state.held_cards0 != null:
-			opp_cards.append(_game_state.held_cards0)
-		elif opponent_idx == 1 and _game_state.held_cards1 != null:
-			opp_cards.append(_game_state.held_cards1)
-		# Also show any face-up opponent cards
-		for c in opp_hand.get_children():
-			var found := false
-			for known in opp_cards:
-				if known == c:
-					found = true
-					break
-			if not found:
-				opp_cards.append(c)
-
-	var selected: Card = AI.select_card(my_cards, opp_cards, player_idx, _game_state)
+	var selected: Card = AI.select_card(my_cards, opp_hand.get_children(), player_idx, _game_state)
 	
 	var tgt: Marker2D
 	# Store in GameState
