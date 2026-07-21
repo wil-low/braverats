@@ -108,7 +108,7 @@ func _start_selection_phase() -> void:
 	if p0_has_spy:
 		# P0 has spy: P1 picks first (blind, shown face-up), then P0 picks knowing P1's card
 		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
-			_ai_select(1)  # AI P1 picks blind
+			_ai_select(1) # AI P1 picks blind
 	elif p1_has_spy:
 		# P1 has spy: P0 picks first (blind, shown face-up), then P1 picks knowing P0's card
 		# P0 is human, picks via _on_card_hand_clicked which triggers AI P1
@@ -141,7 +141,7 @@ func _on_card_hand_clicked(card: Card) -> void:
 	if _game_state.is_spy_active(1):
 		card.face_up = true
 		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
-			_ai_select(1, card)  # AI P1 knows P0's card
+			_ai_select(1, card) # AI P1 knows P0's card
 	# If P0 has spy and P1 already picked, proceed to reveal
 	elif _game_state.held_cards1 != null:
 		_start_reveal()
@@ -242,14 +242,6 @@ func _start_reveal() -> void:
 
 ## Resolve the current round: apply effects, update scores, animate.
 func _resolve_round(c0: Card, c1: Card) -> void:
-	# Apply General +2 effect to held card
-	if _game_state.is_general_active(0):
-		c0.set_power(c0.power) # Flag that General effect is applied
-	if _game_state.is_general_active(1):
-		c1.set_power(c1.power) # Flag that General effect is applied
-
-	# Resolve the round
-
 	# Step 1: Resolve the round (determine result + effects)
 	_game_state = GameLogic.resolve_round(_game_state.held_cards0, _game_state.held_cards1, _game_state)
 
