@@ -108,11 +108,11 @@ func _start_selection_phase() -> void:
 	if p0_has_spy:
 		# P0 has spy: P1 picks first (blind, shown face-up), then P0 picks knowing P1's card
 		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
-			_ai_select(1) # AI P1 picks blind
+			await _ai_select(1) # AI P1 picks blind
 	elif p1_has_spy:
 		# P1 has spy: P0 picks first (blind, shown face-up), then P1 picks knowing P0's card
 		if _game_state.ai_levels[0] != GameState.AI_Level.Human:
-			await _ai_select(0)  # P0 AI picks blind, then triggers P1 with card info
+			await _ai_select(0) # P0 AI picks blind, then triggers P1 with card info
 		# Else P0 is human, picks via _on_card_hand_clicked which triggers AI P1
 	else:
 		# Normal: both pick blind
