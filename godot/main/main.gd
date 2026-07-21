@@ -95,15 +95,30 @@ func _deal_cards() -> Signal:
 # ─── Selection Phase ────────────────────────────────────────────────────────
 
 ## Wait for both players to select cards.
+## When Spy is active, the spied-on player picks first (card shown face-up),
+## then the spy-holder picks second, knowing the opponent's card.
 func _start_selection_phase() -> void:
 	_round_active = true
 	_update_display()
 
-	# If P0 is human, wait for click. If AI, pick immediately.
-	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
-		_ai_select(0)
-	if _game_state.ai_levels[1] != GameState.AI_Level.Human:
-		_ai_select(1)
+	# Spy cancels if both players have it (both played Spy last round)
+	var p0_has_spy = _game_state.is_spy_active(0) and not _game_state.is_spy_active(1)
+	var p1_has_spy = _game_state.is_spy_active(1) and not _game_state.is_spy_active(0)
+
+	if p0_has_spy:
+		# P0 has spy: P1 picks first (blind, shown face-up), then P0 picks knowing P1's card
+		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
+			_ai_select(1)  # AI P1 picks blind
+	elif p1_has_spy:
+		# P1 has spy: P0 picks first (blind, shown face-up), then P1 picks knowing P0's card
+		# P0 is human, picks via _on_card_hand_clicked which triggers AI P1
+		pass
+	else:
+		# Normal: both pick blind
+		if _game_state.ai_levels[0] != GameState.AI_Level.Human:
+			_ai_select(0)
+		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
+			_ai_select(1)
 
 
 # ─── Human Input ────────────────────────────────────────────────────────────
@@ -122,15 +137,21 @@ func _on_card_hand_clicked(card: Card) -> void:
 	await Animator.move_card(card, _played_0.global_position, 0.5)
 	_game_state.hold_card0(card)
 
-	# If P1 AI has already selected, proceed to reveal
-	if _game_state.held_cards1 != null:
+	# If P1 has spy, P0's card is shown face-up and AI P1 picks knowing P0's card
+	if _game_state.is_spy_active(1):
+		card.face_up = true
+		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
+			_ai_select(1, card)  # AI P1 knows P0's card
+	# If P0 has spy and P1 already picked, proceed to reveal
+	elif _game_state.held_cards1 != null:
 		_start_reveal()
 
 
 # ─── AI Selection ───────────────────────────────────────────────────────────
 
 ## AI selects a card from its hand.
-func _ai_select(player_idx: int) -> void:
+## If `known_opponent_card` is provided, the AI knows the opponent's card (spy effect).
+func _ai_select(player_idx: int, known_opponent_card: Card = null) -> void:
 	var opponent_idx := 1 - player_idx
 	var my_hand: Deck = _player_hand0 if player_idx == 0 else _player_hand1
 	var opp_hand: Deck = _player_hand1 if player_idx == 0 else _player_hand0
@@ -140,15 +161,18 @@ func _ai_select(player_idx: int) -> void:
 	for c in my_hand.get_children():
 		my_cards.append(c as Card)
 
-	# Build opponent's known cards (face-down cards are unknown)
+	# Build opponent's known cards
 	var opp_cards: Array[Card]
-	if _game_state.is_spy_active(player_idx):
-		# Spy reveals opponent's held card
+	if known_opponent_card != null:
+		# Direct knowledge (spy-holder knows opponent's card)
+		opp_cards.append(known_opponent_card)
+	elif _game_state.is_spy_active(player_idx):
+		# Spy effect: reveal opponent's already-held card
 		if opponent_idx == 0 and _game_state.held_cards0 != null:
 			opp_cards.append(_game_state.held_cards0)
 		elif opponent_idx == 1 and _game_state.held_cards1 != null:
 			opp_cards.append(_game_state.held_cards1)
-		# Also show any face-up opponent cards (shouldn't happen normally)
+		# Also show any face-up opponent cards
 		for c in opp_hand.get_children():
 			var found := false
 			for known in opp_cards:
@@ -157,8 +181,6 @@ func _ai_select(player_idx: int) -> void:
 					break
 			if not found:
 				opp_cards.append(c)
-	else:
-		opp_cards = []
 
 	var selected: Card = AI.select_card(my_cards, opp_cards, player_idx, _game_state)
 	
@@ -175,17 +197,26 @@ func _ai_select(player_idx: int) -> void:
 	selected.z_index = RenderingServer.CANVAS_ITEM_Z_MAX
 	await Animator.move_card(selected, tgt.global_position, 0.5)
 
+	# If this player is being spied on, show card face-up
+	if _game_state.is_spy_active(opponent_idx):
+		selected.face_up = true
 
-	# If opponent already selected, proceed to reveal
-	var opponent_already := (player_idx == 0 and _game_state.held_cards1 != null) or \
-							(player_idx == 1 and _game_state.held_cards0 != null)
-	if opponent_already:
+	# Check if opponent has already selected
+	var opponent_held = (player_idx == 0 and _game_state.held_cards1 != null) or \
+						(player_idx == 1 and _game_state.held_cards0 != null)
+
+	if opponent_held:
 		_start_reveal()
 	else:
-		# AI opponent picks after brief delay (simulates thinking time)
-		await Animator.delay(0.3)
-		#if _round_active:
-		#	_ai_select(1 - player_idx)
+		# Trigger opponent if AI and hasn't picked yet
+		if _game_state.ai_levels[opponent_idx] != GameState.AI_Level.Human:
+			await Animator.delay(0.3)
+			if _round_active:
+				# Pass our card to opponent if they have spy effect
+				if _game_state.is_spy_active(opponent_idx):
+					_ai_select(opponent_idx, selected)
+				else:
+					_ai_select(opponent_idx)
 
 
 # ─── Reveal Phase ───────────────────────────────────────────────────────────
