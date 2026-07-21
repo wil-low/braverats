@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://bupgluwgnp7vr" path="res://level_selector/digit_button.tscn" id="2_28gom"]
 [ext_resource type="PackedScene" uid="uid://cx1ujd67o4r8d" path="res://level_selector/player_level.tscn" id="3_8rcln"]
 [ext_resource type="PackedScene" uid="uid://bdwamc2uf5t3i" path="res://level_selector/speed_level.tscn" id="4_8rcln"]
-[ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="5_28gom"]
 
 [node name="LevelSelector" type="Node2D" unique_id=1410680190]
 script = ExtResource("1_8rcln")
@@ -17,51 +16,13 @@ frame = 14
 [node name="Levels" type="Node2D" parent="." unique_id=1888645015]
 
 [node name="P_0" parent="Levels" unique_id=19770039 instance=ExtResource("3_8rcln")]
-position = Vector2(11, 0)
+position = Vector2(11, 3)
 
 [node name="P_1" parent="Levels" unique_id=2121058361 instance=ExtResource("3_8rcln")]
-position = Vector2(11, 8)
+position = Vector2(11, 14)
 player_num = 1
-
-[node name="P_2" parent="Levels" unique_id=980193693 instance=ExtResource("3_8rcln")]
-position = Vector2(11, 16)
-player_num = 2
-
-[node name="P_3" parent="Levels" unique_id=493422549 instance=ExtResource("3_8rcln")]
-position = Vector2(11, 24)
-player_num = 3
 
 [node name="SpeedLevel" parent="." unique_id=328672515 instance=ExtResource("4_8rcln")]
 position = Vector2(11, 40)
 
-[node name="Compact" type="Node2D" parent="." unique_id=757851155]
-position = Vector2(55, 33)
-
-[node name="Title" type="Label" parent="Compact" unique_id=2086835536]
-offset_left = -40.0
-offset_top = 1.0
-offset_right = -8.0
-offset_bottom = 7.0
-text = "COMPACT:"
-label_settings = ExtResource("5_28gom")
-metadata/_edit_use_anchors_ = true
-
-[node name="Value" type="Label" parent="Compact" unique_id=1171857327]
-custom_minimum_size = Vector2(12, 0)
-offset_left = 1.0
-offset_top = 1.0
-offset_right = 13.0
-offset_bottom = 7.0
-text = "YES"
-label_settings = ExtResource("5_28gom")
-horizontal_alignment = 1
-metadata/_edit_use_anchors_ = true
-
-[node name="Button" type="Button" parent="Compact" unique_id=1821469729]
-offset_right = 13.0
-offset_bottom = 8.0
-flat = true
-metadata/_edit_use_anchors_ = true
-
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]
-[connection signal="pressed" from="Compact/Button" to="." method="_on_compact_button_pressed"]

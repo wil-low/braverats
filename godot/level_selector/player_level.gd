@@ -13,7 +13,7 @@ var ai_level: GameState.AI_Level:
 	set(value):
 		ai_level = value
 		if _level.visible:
-			_level.text = GameState.AI_LEVEL_NAMES[value] if value < GameState.AI_LEVEL_NAMES.size() else str(value)
+			_level.text = GameState.AI_LEVEL_NAMES[value] if value < len(GameState.AI_LEVEL_NAMES) else str(value)
 		_left_button.visible = value > (GameState.AI_Level.Human if player_num == 0 else GameState.AI_Level.Level_1)
 		_right_button.visible = value < GameState.AI_Level.Level_2
 

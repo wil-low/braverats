@@ -32,7 +32,7 @@ enum RoundResult {
 	PLAYER1_WINS_GAME = 4,
 }
 
-const AI_LEVEL_NAMES := ["Human", "L1", "L2"]
+const AI_LEVEL_NAMES := "H12"
 
 # ─── Constants ───────────────────────────────────────────────────────────────
 

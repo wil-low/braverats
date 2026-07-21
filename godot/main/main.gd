@@ -48,7 +48,7 @@ func _on_menu_button_pressed() -> void:
 # ─── Game Loop ──────────────────────────────────────────────────────────────
 
 ## Initialize a new game: set AI levels, prepare deck, deal 8 cards each.
-func init_players(_random_seed: int, _compact: bool) -> void:
+func init_players(_random_seed: int) -> void:
 	_deck.clear()
 	_player_hand0.clear()
 	_player_hand1.clear()
@@ -313,7 +313,7 @@ func _advance_to_next_round() -> void:
 
 ## Called by application when play-again is pressed.
 func start_new_game() -> void:
-	init_players(0, false)
+	init_players(0)
 
 
 # ─── UI Updates ─────────────────────────────────────────────────────────────
