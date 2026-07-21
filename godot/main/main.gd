@@ -77,7 +77,6 @@ func _deal_cards() -> Signal:
 			c.face_up = true
 			c.global_position = _deck.global_position
 			_player_hand0.add_child(c)
-			c.position = Vector2.ZERO
 			await Animator.move_card(c, pos, 0.15)
 			c.pressed.connect(_on_card_hand_clicked.bind(c))
 
