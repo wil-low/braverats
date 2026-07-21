@@ -5,6 +5,12 @@ extends RefCounted
 ## L1: random card.
 ## L2: evaluation-based (simulates all opponent card possibilities).
 
+# Card short names matching console UI
+const SHORT_NAMES := ["Je", "La", "Sp", "As", "Ch", "Ma", "Ge", "Pr"]
+const RESULT_NAMES := ["Player0", "Player1", "Hold",
+					   "Player0_GameWon", "Player1_GameWon", "NoResult"]
+const WINNER_NAMES := ["", "", "Draw", "Player0", "Player1", ""]
+
 
 static func select_card(my_cards: Array[Card], opponent_hand: Array[Node],
 		player_idx: int, gs: GameState) -> Card:
@@ -34,7 +40,6 @@ static func select_card(my_cards: Array[Card], opponent_hand: Array[Node],
 
 static func _level1(my_cards: Array[Card]) -> Card:
 	"""Level 1: Random card selection."""
-	#return my_cards[0]
 	return my_cards[randi() % my_cards.size()]
 
 
@@ -60,6 +65,7 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 		opponent_move = gs.held_cards0
 	var is_spy := opponent_move != null
 
+	print("\nselect move (level2) start")
 	# Count outcomes: outcome[me_card_idx][result]
 	var CardCount := my_cards.size()
 	var outcome := {}
@@ -90,6 +96,7 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 			var result := new_state.last_result
 			# Check if this round ends the game (after scoring)
 			result = GameLogic.check_winner(temp_gs)
+			render_outcome(my_card, opp_card, new_state)
 			outcome[me_idx][result] += 1
 
 	# Evaluate each card (matches C++ scoring formula)
@@ -128,10 +135,12 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 	# Normalize evals (weighted random selection)
 	var sum := 0
 	for me_idx in range(my_cards.size()):
+		render_eval("1 eval" + str(me_idx), my_cards[me_idx].power, evals[me_idx])
 		if evals[me_idx] > 0:
 			evals[me_idx] = (evals[me_idx] - min_eval) * 4 + 1
 		else:
 			evals[me_idx] = evals[me_idx] - min_eval + 1
+		render_eval("2 eval" + str(me_idx), my_cards[me_idx].power, evals[me_idx])
 		sum += evals[me_idx]
 
 	if sum == 0:
@@ -140,9 +149,11 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 	# Scale to 0-127 range
 	for me_idx in range(my_cards.size()):
 		evals[me_idx] = evals[me_idx] * 127 / sum
+		render_eval("3 eval" + str(me_idx), my_cards[me_idx].power, evals[me_idx])
 
 	# Weighted random selection
 	var rmove := randi() % 127
+	print("sum was " + str(sum) + ", rmove = " + str(rmove))
 	sum = 0
 	for me_idx in range(my_cards.size()):
 		sum += evals[me_idx]
@@ -150,6 +161,17 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 			return my_cards[me_idx]
 
 	return my_cards[my_cards.size() - 1]
+
+
+static func render_outcome(my_card: Card, opp_card: Card, gs) -> void:
+	"""Print outcome of a simulated matchup (mirrors console render_outcome)."""
+	print("Outcome my %s theirs %s: result %s" % [SHORT_NAMES[my_card.power], SHORT_NAMES[opp_card.power],
+		RESULT_NAMES[gs.last_result]])
+
+
+static func render_eval(label: String, card_power: int, eval_val: int) -> void:
+	"""Print evaluation for a card (mirrors console render_eval)."""
+	print("%s %s: %4d" % [label, SHORT_NAMES[card_power], eval_val])
 
 
 static func _copy_gs(gs: GameState) -> GameState:
