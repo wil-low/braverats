@@ -12,9 +12,10 @@ const CARD_LETTERS := "JLSACMGP"
 const TOTAL_GAMES := 40320
 
 var _card_cache: Array[Card]
-
+var file: FileAccess
 
 func _ready() -> void:
+	file = FileAccess.open("/tmp/godot_result.txt", FileAccess.WRITE)
 	# Pre-instantiate all 8 card types for memory-efficient reuse
 	for _i in range(Card.Power.values().size()):
 		var card := CARD_SCENE.instantiate()
@@ -49,7 +50,7 @@ func main() -> void:
 
 	var count := [0]
 	permute(p1_perm, 0, 8, p0_hand, count)
-
+	file.close()
 	printerr("\nDone: %d games", count[0])
 
 
@@ -109,11 +110,12 @@ func simulate_game(p0_hand: Array, p1_hand: Array, count: Array) -> void:
 		p1_hand.remove_at(0)
 
 	# Output in C++ format: outcome TAB scores TAB p0_line TAB p1_line
-	print("%s\t%d\t%d\t%s\t%s" % [
+	file.store_line("{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format([
+		count[0],
 		_outcome_to_string(game_winner),
 		gs.scores[0], gs.scores[1],
 		_build_line(gs.round_history, 0),
-		_build_line(gs.round_history, 1)])
+		_build_line(gs.round_history, 1)]))
 
 
 func _make_card(power: int) -> Card:

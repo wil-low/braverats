@@ -162,9 +162,9 @@ void move_cards(GameState *state, Card p0_card, Card p1_card,
     state->_players[0]._score = 0;
     state->_players[1]._score = 0;
     if (result == RR_Player0_GameWon)
-        state->_players[0]._score = 100;
+        state->_players[0]._score = 99;
     else if (result == RR_Player1_GameWon)
-        state->_players[1]._score = 100;
+        state->_players[1]._score = 99;
     else {
         state->_players[0]._unrealized_points = 0;
         state->_players[1]._unrealized_points = 0;
@@ -322,6 +322,7 @@ static void simulate_game(const Card p0_hand[], const Card p1_hand[]) {
 
 static void permute(Card *arr, int idx, int n) {
     if (idx == n) {
+        printf("%d\t", g_count);
         simulate_game(g_p0_hand, arr);
         g_count++;
         if (g_count % 1000 == 0) {
