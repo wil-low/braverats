@@ -115,10 +115,12 @@ func _start_selection_phase() -> void:
 		pass
 	else:
 		# Normal: both pick blind
+		# If P0 is AI, _ai_select(0) recursively triggers P1 via opponent_held check.
+		# If P0 is human, P1 picks first (then waits for P0's human input).
 		if _game_state.ai_levels[0] != GameState.AI_Level.Human:
-			_ai_select(0)
-		if _game_state.ai_levels[1] != GameState.AI_Level.Human:
-			_ai_select(1)
+			await _ai_select(0)
+		elif _game_state.ai_levels[1] != GameState.AI_Level.Human:
+			await _ai_select(1)
 
 
 # ─── Human Input ────────────────────────────────────────────────────────────
