@@ -84,7 +84,6 @@ func _on_game_over(_winner: int) -> void:
 	_main.hide()
 	_game_over.show()
 	_game_over.game_state = _main._game_state
-	_game_over.stats = _stats
 	_game_over.show_game(_main._game_state)
 
 

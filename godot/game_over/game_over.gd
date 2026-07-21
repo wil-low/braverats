@@ -7,10 +7,8 @@ signal play_again_pressed
 @onready var game_score: Label = $GameScore
 @onready var rounds_1: Label = $Rounds1
 @onready var rounds_0: Label = $Rounds0
-@onready var total_score: Label = $TotalScore
 
 var game_state: GameState = null
-var stats: Node = null
 var _auto_restart: bool = false
 
 
@@ -64,16 +62,8 @@ func show_game(gs: GameState) -> void:
 	rounds_1.text = p1_rounds if not p1_rounds.is_empty() else "-"
 	rounds_0.text = p0_rounds if not p0_rounds.is_empty() else "-"
 
-	## Career victories per mode (original: _players[x]._victory_count at y=41)
-	if stats:
-		var p0_wins: int = stats._totals_and_wins[2 * int(gs.ai_levels[0]) + 1]
-		var p1_wins: int = stats._totals_and_wins[2 * int(gs.ai_levels[1]) + 1]
-		total_score.text = "%d : %d" % [p0_wins, p1_wins]
-	else:
-		total_score.text = "- : -"
-
 	## Auto-restart if both players are AI (8s delay)
 	_auto_restart = (gs.ai_levels[0] != GameState.AI_Level.Human and gs.ai_levels[1] != GameState.AI_Level.Human)
 	if _auto_restart:
-		await Animator.delay(8)
+		await Animator.delay(16)
 		play_again_pressed.emit()
