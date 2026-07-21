@@ -17,13 +17,7 @@ func set_levels(ai_levels: Array[GameState.AI_Level], speed: int) -> void:
 func _on_back_button_pressed() -> void:
 	var result: Array[GameState.AI_Level]
 	result.resize(2)
-	var player_count := 0
 	for level in _levels.get_children():
 		result[level.player_num] = level.ai_level
-		if level.ai_level != GameState.AI_Level.Human:
-			player_count += 1
-	if player_count > 1:
-		hide()
-		levels_changed.emit(result, _speed_level.level)
-	else:
-		print("Too few players")
+	hide()
+	levels_changed.emit(result, _speed_level.level)
