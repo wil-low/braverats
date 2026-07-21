@@ -53,12 +53,12 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 
 	# Determine if we know opponent's card (spy)
 	# In C++: bool is_spy = opponent_move != UnknownCard;
-	var revealed_card: Card = null
+	var opponent_move: Card = null
 	if player_idx == 0 and gs.held_cards1 != null:
-		revealed_card = gs.held_cards1
+		opponent_move = gs.held_cards1
 	elif player_idx == 1 and gs.held_cards0 != null:
-		revealed_card = gs.held_cards0
-	var is_spy := revealed_card != null
+		opponent_move = gs.held_cards0
+	var is_spy := opponent_move != null
 
 	# Count outcomes: outcome[me_card_idx][result]
 	var CardCount := my_cards.size()
@@ -79,7 +79,7 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 		for opp_node in opponent_hand:
 			var opp_card: Card = opp_node as Card
 			# C++: if (is_spy && opponent_move != opp_card) continue;
-			if is_spy and revealed_card != opp_card:
+			if is_spy and opponent_move != opp_card:
 				continue
 
 			var new_state := GameLogic.resolve_round(my_card, opp_card, gs)
