@@ -82,18 +82,14 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 			if is_spy and opponent_move != opp_card:
 				continue
 
-			var new_state := GameLogic.resolve_round(my_card, opp_card, gs)
+			var temp_gs := _copy_gs(gs)
+			var new_state := GameLogic.resolve_round(my_card, opp_card, temp_gs)
+			# Call finalize_round (equivalent to C++ move_cards) to update scores
+			GameLogic.finalize_round(temp_gs, my_card, opp_card, new_state.last_result)
 			# Track the result
 			var result := new_state.last_result
-			# Check if this round ends the game
-			if result == GameState.RoundResult.HOLD and gs.round_count > 0:
-				var temp_gs := _copy_gs(gs)
-				temp_gs.last_result = result
-				temp_gs.held_cards0 = my_card
-				temp_gs.held_cards1 = opp_card
-				var winner := GameLogic.check_winner(temp_gs)
-				if winner != GameState.RoundResult.HOLD and winner != GameState.RoundResult.NO_RESULT:
-					result = winner
+			# Check if this round ends the game (after scoring)
+			result = GameLogic.check_winner(temp_gs)
 			outcome[me_idx][result] += 1
 
 	# Evaluate each card (matches C++ scoring formula)
@@ -167,7 +163,7 @@ static func _copy_gs(gs: GameState) -> GameState:
 	copy.held_cards0 = gs.held_cards0
 	copy.held_cards1 = gs.held_cards1
 	copy.winner = gs.winner
-	copy.round_history = gs.round_history
+	copy.round_history = gs.round_history.duplicate()
 	copy.held_rounds = gs.held_rounds
 	copy.chancellor_points = gs.chancellor_points.duplicate()
 	copy.effects = gs.effects.duplicate()
