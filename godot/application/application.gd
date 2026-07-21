@@ -113,6 +113,7 @@ func _on_pause_resume_pressed() -> void:
 func _on_pause_exit_pressed() -> void:
 	Animator.kill_tweens()
 	_main.get_tree().paused = false
+	_main._clear_played_cards()
 	_start.show()
 
 

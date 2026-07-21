@@ -53,6 +53,7 @@ func init_players(_random_seed: int, _compact: bool) -> void:
 	_player_hand0.clear()
 	_player_hand1.clear()
 	_clear_animation_layer()
+	_clear_played_cards()
 
 	_game_state.new_game()
 	_prepare_deck()
@@ -354,6 +355,20 @@ func _clear_animation_layer() -> void:
 		var ch := _animation_layer.get_child(0)
 		_animation_layer.remove_child(ch)
 		ch.queue_free()
+
+
+func _free_all(node: Node) -> void:
+	while node.get_child_count() > 0:
+		var c := node.get_child(0)
+		node.remove_child(c)
+		c.queue_free()
+
+
+func _clear_played_cards() -> void:
+	_free_all(_player_hand0)
+	_free_all(_player_hand1)
+	_free_all(_played_0)
+	_free_all(_played_1)
 
 
 func _is_speedrun() -> bool:
