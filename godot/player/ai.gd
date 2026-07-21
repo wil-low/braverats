@@ -33,6 +33,7 @@ static func select_card(my_cards: Array[Card], opponent_known: Array[Card], play
 
 static func _level1(my_cards: Array[Card]) -> Card:
 	"""Level 1: Random card selection."""
+	#return my_cards[0]
 	return my_cards[randi() % my_cards.size()]
 
 
@@ -52,9 +53,8 @@ static func _level2(my_cards: Array[Card], opponent_known: Array[Card], player_i
 		var opp_card: Card
 		for p in Card.Power.values():
 			opp_card = Card.new()
-			opp_card.set_power(p)
+			opp_card._power = p
 			opponent_cards.append(opp_card)
-		opp_card.free()  # Clean up last created card
 	else:
 		for oc in opponent_known:
 			opponent_cards.append(oc)
@@ -91,28 +91,28 @@ static func _evaluate(my_card: Card, opp_card: Card, player_idx: int, gs: GameSt
 			if player_idx == 0:
 				score = _get_points(my_card, gs)
 			else:
-				score = -1.0  # AI loses
+				score = -1.0 # AI loses
 		GameState.RoundResult.PLAYER1_WINS:
 			if player_idx == 1:
 				score = _get_points(opp_card, gs)
 			else:
-				score = -1.0  # AI loses
+				score = -1.0 # AI loses
 		GameState.RoundResult.HOLD:
-			score = 0.0  # Draw, no points
+			score = 0.0 # Draw, no points
 
 	# Bonus: prefer winning with higher-value cards (Chancellor = 2 pts)
 	if (player_idx == 0 and new_state.last_result == GameState.RoundResult.PLAYER0_WINS) or \
 	   (player_idx == 1 and new_state.last_result == GameState.RoundResult.PLAYER1_WINS):
 		var winner_card := my_card if player_idx == 0 else opp_card
 		if winner_card.power == Card.Power.Chancellor:
-			score += 1.0  # Bonus for knowing Chancellor wins 2 pts
+			score += 1.0 # Bonus for knowing Chancellor wins 2 pts
 
 	# Penalize playing against a known strong opponent card
 	if opponent_idx == 0 and new_state.last_result == GameState.RoundResult.PLAYER1_WINS:
 		if opp_card.power == Card.Power.Lady:
-			score += 1.5  # Lady beats Prince — good for P1
+			score += 1.5 # Lady beats Prince — good for P1
 		elif opp_card.power == Card.Power.Spy:
-			score += 0.3  # Spy reveals info — slightly positive (we learned)
+			score += 0.3 # Spy reveals info — slightly positive (we learned)
 
 	return score
 

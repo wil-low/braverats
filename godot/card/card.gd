@@ -29,12 +29,7 @@ const POWER_NAMES := [
 @onready var _value_label: Label = $Value
 
 
-var _power: Power = Power.Jester:
-	get:
-		return _power
-	set(value):
-		_power = value
-		_update_display()
+var _power: Power = Power.Jester
 
 var face_up: bool = true:
 	set(value):
