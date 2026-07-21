@@ -11,9 +11,12 @@ signal play_again_pressed
 
 var _stats: Node = null
 var game_state: GameState = null
+var _auto_restart: bool = false
 
 
 func _on_button_pressed() -> void:
+	if _auto_restart:
+		return
 	hide()
 	play_again_pressed.emit()
 
@@ -70,3 +73,9 @@ func show_game(gs: GameState) -> void:
 		total_score.text = "%d : %d" % [p0_wins, p1_wins]
 	else:
 		total_score.text = "- : -"
+
+	## Auto-restart if both players are AI (8s delay)
+	_auto_restart = (gs.ai_levels[0] != GameState.AI_Level.Human and gs.ai_levels[1] != GameState.AI_Level.Human)
+	if _auto_restart:
+		await Animator.delay(8)
+		play_again_pressed.emit()
