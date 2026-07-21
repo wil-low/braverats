@@ -9,7 +9,7 @@ extends Node2D
 	set(value):
 		card_power = value
 		if Engine.is_editor_hint():
-			_card.frame = card_power
+			_card._character.frame = card_power
 
 @export var card_name: String:
 	set(value):
@@ -25,6 +25,6 @@ extends Node2D
 
 
 func _ready() -> void:
-	_card._power = card_power
+	_card.power = card_power
 	_name.text = card_name
 	_description.text = card_description
