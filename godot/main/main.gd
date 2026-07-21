@@ -2,7 +2,8 @@ class_name Main
 extends Node2D
 
 signal menu_pressed
-signal round_finished(ai_level: int)
+signal round_finished(level: GameState.AI_Level)
+signal round_won(level: GameState.AI_Level)
 signal save_stats
 signal game_over(winner: int)
 

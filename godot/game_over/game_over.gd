@@ -9,8 +9,8 @@ signal play_again_pressed
 @onready var rounds_0: Label = $Rounds0
 @onready var total_score: Label = $TotalScore
 
-var _stats: Node = null
 var game_state: GameState = null
+var stats: Node = null
 var _auto_restart: bool = false
 
 
@@ -65,11 +65,9 @@ func show_game(gs: GameState) -> void:
 	rounds_0.text = p0_rounds if not p0_rounds.is_empty() else "-"
 
 	## Career victories per mode (original: _players[x]._victory_count at y=41)
-	if not _stats:
-		_stats = get_node_or_null("/root/Stats")
-	if _stats:
-		var p0_wins: int = _stats._totals_and_wins[2 * int(gs.ai_levels[0]) + 1]
-		var p1_wins: int = _stats._totals_and_wins[2 * int(gs.ai_levels[1]) + 1]
+	if stats:
+		var p0_wins: int = stats._totals_and_wins[2 * int(gs.ai_levels[0]) + 1]
+		var p1_wins: int = stats._totals_and_wins[2 * int(gs.ai_levels[1]) + 1]
 		total_score.text = "%d : %d" % [p0_wins, p1_wins]
 	else:
 		total_score.text = "- : -"

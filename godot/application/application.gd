@@ -83,6 +83,8 @@ func _on_main_menu_pressed() -> void:
 func _on_game_over(_winner: int) -> void:
 	_main.hide()
 	_game_over.show()
+	_game_over.game_state = _main._game_state
+	_game_over.stats = _stats
 	_game_over.show_game(_main._game_state)
 
 
@@ -148,6 +150,9 @@ func _on_pause_help_pressed() -> void:
 	_help.show()
 
 
-func _on_round_finished(_level: int) -> void:
-	_stats._totals_and_wins[2 * _level + 1] = clampi(_stats._totals_and_wins[2 * _level + 1] + 1, 0, 99999)
-	pass
+func _on_round_won(level: GameState.AI_Level) -> void:
+	_stats._totals_and_wins[2 * level] = clampi(_stats._totals_and_wins[2 * level] + 1, 0, 99999)
+
+
+func _on_round_finished(level: GameState.AI_Level) -> void:
+	_stats._totals_and_wins[2 * level + 1] = clampi(_stats._totals_and_wins[2 * level + 1] + 1, 0, 99999)

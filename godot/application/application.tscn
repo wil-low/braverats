@@ -42,6 +42,7 @@ visible = false
 [connection signal="game_over" from="Main" to="." method="_on_game_over"]
 [connection signal="menu_pressed" from="Main" to="." method="_on_main_menu_pressed"]
 [connection signal="round_finished" from="Main" to="." method="_on_round_finished"]
+[connection signal="round_won" from="Main" to="." method="_on_round_won"]
 [connection signal="save_stats" from="Main" to="." method="save_config"]
 [connection signal="exit_pressed" from="Pause" to="." method="_on_pause_exit_pressed"]
 [connection signal="help_pressed" from="Pause" to="." method="_on_pause_help_pressed"]
