@@ -50,20 +50,10 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
  Simulates each card against all possible opponent cards, scores outcomes,
  then uses weighted random selection.
 	"""
-	var opponent_idx := 1 - player_idx
-
 	# First round is random (matches C++: round_count == 0)
 	if gs.round_count == 0:
+		#return my_cards[0]
 		return my_cards[randi() % my_cards.size()]
-
-	# Determine if we know opponent's card (spy)
-	# In C++: bool is_spy = opponent_move != UnknownCard;
-	var opponent_move: Card = null
-	if player_idx == 0 and gs.held_cards1 != null:
-		opponent_move = gs.held_cards1
-	elif player_idx == 1 and gs.held_cards0 != null:
-		opponent_move = gs.held_cards0
-	var is_spy := opponent_move != null
 
 	print("\nselect move (level2) start")
 	# Count outcomes: outcome[me_card_idx][result]
@@ -84,18 +74,18 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 		var my_card := my_cards[me_idx]
 		for opp_node in opponent_hand:
 			var opp_card: Card = opp_node as Card
-			# C++: if (is_spy && opponent_move != opp_card) continue;
-			if is_spy and opponent_move != opp_card:
-				continue
-
-			var temp_gs := _copy_gs(gs)
-			var new_state := GameLogic.resolve_round(my_card, opp_card, temp_gs)
-			# Call finalize_round (equivalent to C++ move_cards) to update scores
-			GameLogic.finalize_round(temp_gs, my_card, opp_card, new_state.last_result)
+			var new_state := _copy_gs(gs)
+			if player_idx == 0:
+				new_state = GameLogic.resolve_round(my_card, opp_card, new_state)
+				GameLogic.finalize_round(new_state, my_card, opp_card, new_state.last_result)
+			else:
+				new_state = GameLogic.resolve_round(opp_card, my_card, new_state)
+				GameLogic.finalize_round(new_state, opp_card, my_card, new_state.last_result)
+			#print("finalize %s %s: %4d" % [SHORT_NAMES[my_card.power], SHORT_NAMES[opp_card.power], new_state.last_result])
 			# Track the result
 			var result := new_state.last_result
 			# Check if this round ends the game (after scoring)
-			result = GameLogic.check_winner(temp_gs)
+			result = GameLogic.check_winner(new_state)
 			render_outcome(my_card, opp_card, new_state)
 			outcome[me_idx][result] += 1
 
@@ -112,7 +102,7 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 
 		# Points for game win (for this player)
 		var my_game_win := GameState.RoundResult.PLAYER0_WINS_GAME if player_idx == 0 else GameState.RoundResult.PLAYER1_WINS_GAME
-		eval += outcome[me_idx][my_game_win]
+		eval += outcome[me_idx][my_game_win] * 8
 
 		# Penalty for opponent winning (round loss)
 		var opp_round_win := GameState.RoundResult.PLAYER1_WINS if player_idx == 0 else GameState.RoundResult.PLAYER0_WINS
@@ -142,7 +132,7 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 			evals[me_idx] = evals[me_idx] - min_eval + 1
 		render_eval("2 eval" + str(me_idx), my_cards[me_idx].power, evals[me_idx])
 		sum += evals[me_idx]
-
+	print()
 	if sum == 0:
 		sum = 1
 
@@ -154,6 +144,7 @@ static func _level2(my_cards: Array[Card], opponent_hand: Array[Node],
 	# Weighted random selection
 	var rmove := randi() % 127
 	print("sum was " + str(sum) + ", rmove = " + str(rmove))
+	#return my_cards[0]
 	sum = 0
 	for me_idx in range(my_cards.size()):
 		sum += evals[me_idx]
@@ -202,7 +193,7 @@ static func deep_copy_array(arr: Array) -> Array:
 			new_array.append(deep_copy_dict(item))
 		elif item is Resource or item is Node:
 			# Use subresources=true to deeply duplicate custom resources
-			new_array.append(item.duplicate(true)) 
+			new_array.append(item.duplicate(true))
 		else:
 			new_array.append(item) # Primitive types (int, float, string) are passed by value
 	return new_array

@@ -172,7 +172,8 @@ func _ai_select(player_idx: int, known_opponent_card: Card = null) -> void:
 	for c in my_hand.get_children():
 		my_cards.append(c as Card)
 
-	var selected: Card = AI.select_card(my_cards, opp_hand.get_children(), player_idx, _game_state)
+	var opp_cards := [known_opponent_card] as Array[Node] if known_opponent_card else opp_hand.get_children()
+	var selected: Card = AI.select_card(my_cards, opp_cards, player_idx, _game_state)
 	#print("AI selected card: " + AI.SHORT_NAMES[selected.power] + "\n")
 	var tgt: Marker2D
 	# Store in GameState
