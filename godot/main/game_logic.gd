@@ -116,6 +116,9 @@ static func finalize_round(gs: GameState, card0: Card, card1: Card, result: Game
 	}
 	gs.round_history.append(entry)
 
+	# Increment round counter (matches C++ move_cards)
+	gs.round_count += 1
+
 	gs.scores[0] = 0
 	gs.scores[1] = 0
 
