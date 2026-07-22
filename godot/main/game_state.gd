@@ -53,7 +53,7 @@ var last_result: RoundResult
 
 ## Round history: each entry is a Dictionary with keys:
 ##   card0, card1, result, player0_wins_round
-var round_history: Array[Dictionary] = []
+var round_history = []
 
 ## Current scores (points won from resolved rounds)
 var scores: Array[int] = [0, 0]

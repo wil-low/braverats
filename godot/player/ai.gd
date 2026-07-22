@@ -175,7 +175,7 @@ static func render_eval(label: String, card_power: int, eval_val: int) -> void:
 
 
 static func _copy_gs(gs: GameState) -> GameState:
-	"""Create a shallow copy of GameState for simulation."""
+	"""Create a copy of GameState for simulation."""
 	var copy := GameState.new()
 	copy.scores = gs.scores.duplicate()
 	copy.unrealized = gs.unrealized.duplicate()
@@ -185,9 +185,38 @@ static func _copy_gs(gs: GameState) -> GameState:
 	copy.held_cards0 = gs.held_cards0
 	copy.held_cards1 = gs.held_cards1
 	copy.winner = gs.winner
-	copy.round_history = gs.round_history.duplicate()
+	copy.round_history = deep_copy_array(gs.round_history)
 	copy.held_rounds = gs.held_rounds
 	copy.chancellor_points = gs.chancellor_points.duplicate()
 	copy.effects = gs.effects.duplicate()
 	copy.lady_beats_prince_player = gs.lady_beats_prince_player
 	return copy
+
+
+static func deep_copy_array(arr: Array) -> Array:
+	var new_array = []
+	for item in arr:
+		if item is Array:
+			new_array.append(deep_copy_array(item))
+		elif item is Dictionary:
+			new_array.append(deep_copy_dict(item))
+		elif item is Resource or item is Node:
+			# Use subresources=true to deeply duplicate custom resources
+			new_array.append(item.duplicate(true)) 
+		else:
+			new_array.append(item) # Primitive types (int, float, string) are passed by value
+	return new_array
+
+static func deep_copy_dict(dict: Dictionary) -> Dictionary:
+	var new_dict = {}
+	for key in dict:
+		var val = dict[key]
+		if val is Array:
+			new_dict[key] = deep_copy_array(val)
+		elif val is Dictionary:
+			new_dict[key] = deep_copy_dict(val)
+		elif val is Resource or val is Node:
+			new_dict[key] = val.duplicate(true)
+		else:
+			new_dict[key] = val
+	return new_dict

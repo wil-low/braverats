@@ -133,7 +133,7 @@ static func finalize_round(gs: GameState, card0: Card, card1: Card, result: Game
 
 		# Walk through ALL rounds — mirrors C++ move_cards loop
 		for i in gs.round_history.size():
-			var h := gs.round_history[i]
+			var h: Dictionary = gs.round_history[i]
 
 			# If this round was Hold, resolve it to current decisive result
 			if h.result == GameState.RoundResult.HOLD:
