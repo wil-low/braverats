@@ -15,7 +15,7 @@ metadata/_edit_vertical_guides_ = [84.0, 42.0]
 position = Vector2(45, -24)
 
 [node name="PlayerHand0" parent="." unique_id=885054453 instance=ExtResource("2_pjrb6")]
-position = Vector2(0, 13)
+position = Vector2(1, 12)
 columns = 4
 fan_offset = Vector2i(12, 18)
 
@@ -32,8 +32,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 16.0
+offset_top = 1.0
 offset_right = 48.0
-offset_bottom = 6.0
+offset_bottom = 7.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "01234567"

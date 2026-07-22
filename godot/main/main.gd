@@ -220,7 +220,7 @@ func _start_reveal() -> void:
 	await Animator.flip(c1, true, 0.3)
 
 	# Resolve round after reveal
-	await Animator.delay(0.5)
+	await Animator.delay(2)
 	_resolve_round(c0, c1)
 
 
