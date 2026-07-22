@@ -34,19 +34,19 @@ func main() -> void:
 	printerr("#")
 	printerr("# Marks: ! = instant Lady-Prince win, # = 2pts, + = 1pt,   = hold\n")
 
-	# P0 fixed to identity (matches C++ cpp_test.cpp)
-	var p0_hand := [
-		Card.Power.Assassin, Card.Power.Prince, Card.Power.Chancellor,
-		Card.Power.Jester, Card.Power.Lady, Card.Power.General,
-		Card.Power.Spy, Card.Power.Magician,
-	]
+	# P0 fixed to identity
+	var p0_chars := "JSCPALGM"
+	# P1 starts as identity
+	var p1_chars := "CJPGSAML"
 
-	# P1 starts as identity and will be permuted
-	var p1_perm := [
-		Card.Power.Jester, Card.Power.Lady, Card.Power.Spy,
-		Card.Power.Assassin, Card.Power.Chancellor, Card.Power.Magician,
-		Card.Power.General, Card.Power.Prince,
-	]
+	var p0_hand := []
+	var p1_perm := []
+
+	for i in 8:
+		var pos := CARD_LETTERS.find(p0_chars[i])
+		p0_hand.append(pos)
+		pos = CARD_LETTERS.find(p1_chars[i])
+		p1_perm.append(pos)
 
 	var count := [0]
 	permute(p1_perm, 0, 8, p0_hand, count)

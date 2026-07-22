@@ -254,7 +254,7 @@ static void simulate_game(const Card p0_hand[], const Card p1_hand[]) {
         printf("DRAW\t");
         break;
     default:
-        printf("NO RESULT\t");
+        printf("NRES\t");
         break;
     }
 
@@ -356,13 +356,21 @@ int main() {
                     "sp = hold\n\n");
 
     // P0 fixed to identity
-    static const Card p0_fixed[] = {Assassin, Prince,  Chancellor, Jester,
-                                    Lady,     General, Spy,        Magician};
-    g_p0_hand = p0_fixed;
-
+    const char p0_chars[] = "JSCPALGM";
     // P1 starts as identity
-    Card p1_perm[] = {Jester,     Lady,     Spy,     Assassin,
-                      Chancellor, Magician, General, Prince};
+    const char p1_chars[] = "CJPGSAML";
+
+    Card p0_fixed[8];
+    Card p1_perm[8];
+
+    for (int i = 0; i < 8; ++i) {
+        auto pos = strchr(CARD_LETTERS, p0_chars[i]) - CARD_LETTERS;
+        p0_fixed[i] = (Card)pos;
+
+        pos = strchr(CARD_LETTERS, p1_chars[i]) - CARD_LETTERS;
+        p1_perm[i] = (Card)pos;
+    }
+    g_p0_hand = p0_fixed;
 
     permute(p1_perm, 0, CardCount);
 
