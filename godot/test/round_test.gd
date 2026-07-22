@@ -87,6 +87,7 @@ func simulate_game(p0_hand: Array, p1_hand: Array, count: Array) -> void:
 	GameLogic.new_game(gs)
 
 	var game_winner: GameState.RoundResult
+	var score_log := ""
 
 	for _round in 8:
 		var c0 := _make_card(p0_hand[0])
@@ -100,6 +101,8 @@ func simulate_game(p0_hand: Array, p1_hand: Array, count: Array) -> void:
 		# (mirrors C++ move_cards)
 		GameLogic.finalize_round(gs, c0, c1, gs.last_result)
 
+		score_log += "%d,%d,%d,%d|" % [gs.scores[0], gs.unrealized[0], gs.scores[1], gs.unrealized[1]]
+
 		game_winner = GameLogic.check_winner(gs)
 
 		if game_winner != GameState.RoundResult.NO_RESULT:
@@ -109,11 +112,12 @@ func simulate_game(p0_hand: Array, p1_hand: Array, count: Array) -> void:
 		p0_hand.remove_at(0)
 		p1_hand.remove_at(0)
 
-	# Output in C++ format: outcome TAB scores TAB p0_line TAB p1_line
-	file.store_line("{0}\t{1}\t{2}\t{3}\t{4}\t{5}".format([
+	# Output in C++ format: outcome TAB scores TAB score_log TAB p0_line TAB p1_line
+	file.store_line("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}".format([
 		count[0],
 		_outcome_to_string(game_winner),
 		gs.scores[0], gs.scores[1],
+		score_log,
 		_build_line(gs.round_history, 0),
 		_build_line(gs.round_history, 1)]))
 
@@ -136,7 +140,6 @@ func _build_line(history: Array, player_idx: int) -> String:
 	var line := ""
 	for entry in history:
 		var my_card: int = entry["card%d" % player_idx] as int
-		var opp_card: int = entry["card%d" % (1 - player_idx)] as int
 		var points: int = entry["points"] as int
 		var result: GameState.RoundResult = entry["result"] as GameState.RoundResult
 

@@ -228,6 +228,8 @@ static void simulate_game(const Card p0_hand[], const Card p1_hand[]) {
     memcpy(state._players[1]._hand._items, p1_hand, 8 * sizeof(Card));
     state._players[1]._hand._count = 8;
 
+    char score_log[256] = "";
+
     RoundResult game_winner = RR_NoResult;
 
     for (uint8_t round = 0; round < 8; ++round) {
@@ -236,6 +238,12 @@ static void simulate_game(const Card p0_hand[], const Card p1_hand[]) {
 
         state = resolve_round(&state, p0_card, p1_card);
         move_cards(&state, p0_card, p1_card, state._last_result);
+
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%d,%d,%d,%d|", state._players[0]._score,
+                 state._players[0]._unrealized_points, state._players[1]._score,
+                 state._players[1]._unrealized_points);
+        strncat(score_log, buf, sizeof(score_log) - strlen(score_log) - 1);
 
         game_winner = check_winner(&state);
         if (game_winner != RR_NoResult)
@@ -259,7 +267,8 @@ static void simulate_game(const Card p0_hand[], const Card p1_hand[]) {
     }
 
     // Final accumulated scores
-    printf("%d\t%d\t", state._players[0]._score, state._players[1]._score);
+    printf("%d\t%d\t%s\t", state._players[0]._score, state._players[1]._score,
+           score_log);
 
     // Round history: two lines (mirrors Godot rounds_1 / rounds_0 labels)
     char p1_line[20] = "";
