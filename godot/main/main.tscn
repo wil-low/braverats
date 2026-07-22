@@ -31,9 +31,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 16.0
+offset_left = 17.0
 offset_top = 1.0
-offset_right = 48.0
+offset_right = 49.0
 offset_bottom = 7.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -42,10 +42,10 @@ label_settings = ExtResource("16_n3o0a")
 horizontal_alignment = 1
 
 [node name="Played1" type="Marker2D" parent="." unique_id=981826023]
-position = Vector2(53, 2)
+position = Vector2(53, 1)
 
 [node name="Played0" type="Marker2D" parent="." unique_id=126014041]
-position = Vector2(53, 22)
+position = Vector2(53, 21)
 
 [node name="Effect1" type="Sprite2D" parent="." unique_id=1782000436]
 visible = false
