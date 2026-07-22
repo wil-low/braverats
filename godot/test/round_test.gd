@@ -8,7 +8,6 @@ extends Node2D
 ## and check_winner from existing Godot code.
 
 const CARD_SCENE := preload("res://card/card.tscn")
-const CARD_LETTERS := "JLSACMGP"
 const TOTAL_GAMES := 40320
 
 var _card_cache: Array[Card]
@@ -43,9 +42,9 @@ func main() -> void:
 	var p1_perm := []
 
 	for i in 8:
-		var pos := CARD_LETTERS.find(p0_chars[i])
+		var pos := Deck.CARD_LETTERS.find(p0_chars[i])
 		p0_hand.append(pos)
-		pos = CARD_LETTERS.find(p1_chars[i])
+		pos = Deck.CARD_LETTERS.find(p1_chars[i])
 		p1_perm.append(pos)
 
 	var count := [0]
@@ -143,7 +142,7 @@ func _build_line(history: Array, player_idx: int) -> String:
 		var points: int = entry["points"] as int
 		var result: GameState.RoundResult = entry["result"] as GameState.RoundResult
 
-		var ch := CARD_LETTERS[my_card]
+		var ch := Deck.CARD_LETTERS[my_card]
 		var mark := " "
 
 		match result:

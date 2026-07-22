@@ -2,10 +2,13 @@ class_name Deck extends Node2D
 
 signal card_clicked(card: Card)
 
+## Character mapping for card powers
+const CARD_LETTERS := "JLSACMGP"
+
 @export var card_scene: PackedScene
-@export var columns: int = 1 
+@export var columns: int = 1
 @export var fan_offset: Vector2i
-@export var max_show := -1  # -1 = no limit, 0..N = max fanned; extras stack under last
+@export var max_show := -1 # -1 = no limit, 0..N = max fanned; extras stack under last
 
 
 func clear() -> void:
@@ -64,3 +67,14 @@ func get_append_position() -> Vector2:
 
 func get_card_count() -> int:
 	return get_child_count()
+
+
+## Create a card with the power corresponding to a hand string character.
+static func make_card_from_char(ch: String) -> Card:
+	var c := Card.new()
+	for power in Card.Power.values():
+		if Card.POWER_NAMES[power][0] == ch:
+			c._power = power
+			return c
+	c.power = Card.Power.Jester
+	return c

@@ -34,6 +34,11 @@ signal game_over(winner: int)
 var _game_state: GameState = GameState.new()
 var _round_active: bool = false
 
+## Pre-set hands for testing/debugging. Each char maps to a card.
+## If empty, default shuffled deck is used.
+@export var hand0: String = ""
+@export var hand1: String = ""
+
 
 func _ready() -> void:
 	_deck.clear()
@@ -69,6 +74,8 @@ func _prepare_deck() -> void:
 
 ## Deal 8 cards to each player hand with animation.
 func _deal_cards() -> Signal:
+	var use_explicit_hands := not hand0.is_empty() or not hand1.is_empty()
+
 	for i in range(8):
 		# Deal to Player 0 (bottom)
 		var c := _deck.pop()
@@ -339,6 +346,9 @@ func _update_effect(sprite: Sprite2D, is_spy: bool, is_general: bool) -> void:
 
 
 # ─── Helpers ────────────────────────────────────────────────────────────────
+
+## Create a card with the power corresponding to a hand string character.
+## Delegates to Deck.make_card_from_char().
 
 func _clear_animation_layer() -> void:
 	while _animation_layer.get_child_count() > 0:
