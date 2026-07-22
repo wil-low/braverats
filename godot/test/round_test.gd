@@ -61,8 +61,8 @@ func permute(arr: Array, idx: int, n: int, p0_hand: Array, count: Array) -> void
 		simulate_game(p0_hand.duplicate(), arr.duplicate(), count)
 		count[0] += 1
 		if count[0] % 1000 == 0:
-			printerr("%d / %d (%.1f%%)\r", count[0], TOTAL_GAMES,
-					 float(count[0]) / TOTAL_GAMES * 100.0)
+			printerr("%d / %d (%.1f%%)\n" % [count[0], TOTAL_GAMES,
+					 float(count[0]) / TOTAL_GAMES * 100.0])
 		return
 
 	# Avoid duplicate swaps
@@ -127,7 +127,7 @@ func _outcome_to_string(result: GameState.RoundResult) -> String:
 		GameState.RoundResult.PLAYER0_WINS_GAME: return "WIN0"
 		GameState.RoundResult.PLAYER1_WINS_GAME: return "WIN1"
 		GameState.RoundResult.HOLD: return "DRAW"
-		_: return "NO RESULT"
+		_: return "NRES"
 
 
 func _build_line(history: Array, player_idx: int) -> String:
@@ -135,40 +135,33 @@ func _build_line(history: Array, player_idx: int) -> String:
 	Mirrors C++ output: card_letter + mark for each round, padded to 8 chars."""
 	var line := ""
 	for entry in history:
-		var card_power: int = entry["card%d" % player_idx] as int
+		var my_card: int = entry["card%d" % player_idx] as int
 		var opp_card: int = entry["card%d" % (1 - player_idx)] as int
 		var points: int = entry["points"] as int
 		var result: GameState.RoundResult = entry["result"] as GameState.RoundResult
 
-		var ch := CARD_LETTERS[card_power]
+		var ch := CARD_LETTERS[my_card]
 		var mark := " "
 
 		match result:
 			GameState.RoundResult.PLAYER0_WINS_GAME:
-				mark = "!"
+				if player_idx == 0:
+					mark = "!"
 			GameState.RoundResult.PLAYER1_WINS_GAME:
-				mark = "!"
+				if player_idx == 1:
+					mark = "!"
 			GameState.RoundResult.PLAYER0_WINS:
-				if card_power == Card.Power.Lady and opp_card == Card.Power.Prince:
-					mark = "!"
-				elif card_power == Card.Power.Prince and opp_card == Card.Power.Lady:
-					mark = "!"
-				elif points == 2:
-					mark = "#"
-				else:
-					mark = "+"
+				if player_idx == 0:
+					if points == 2:
+						mark = "#"
+					else:
+						mark = "+"
 			GameState.RoundResult.PLAYER1_WINS:
-				if opp_card == Card.Power.Lady and card_power == Card.Power.Prince:
-					mark = "!"
-				elif points == 2:
-					mark = "#"
-				else:
-					mark = "+"
+				if player_idx == 1:
+					if points == 2:
+						mark = "#"
+					else:
+						mark = "+"
 
 		line += "%c%c" % [ch, mark]
-
-	# Pad to 8 characters (matches C++)
-	while line.length() < 8:
-		line += " "
-
 	return line

@@ -308,12 +308,6 @@ static void simulate_game(const Card p0_hand[], const Card p1_hand[]) {
         strncat(p1_line, buf, sizeof(p1_line) - strlen(p1_line) - 1);
     }
 
-    // Pad to 8 characters
-    while (strlen(p0_line) < 8)
-        strncat(p0_line, " ", sizeof(p0_line) - strlen(p0_line) - 1);
-    while (strlen(p1_line) < 8)
-        strncat(p1_line, " ", sizeof(p1_line) - strlen(p1_line) - 1);
-
     printf("%s\t", p0_line);
     printf("%s\n", p1_line);
 }
