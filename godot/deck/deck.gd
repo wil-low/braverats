@@ -20,18 +20,32 @@ func clear() -> void:
 			break
 
 
-func prepare_braverats() -> void:
+func prepare_braverats(hand0: String = "", hand1: String = "") -> void:
 	"""Prepare a Braverats deck: 8 unique cards per player (16 total).
 	Each player gets one of each: Jester, Lady, Spy, Assassin,
-	Chancellor, Magician, General, Prince."""
+	Chancellor, Magician, General, Prince.
+
+	If hand0/hand1 are non-empty, cards are created from those strings
+	instead of the default power order. Deck layout is round-robin:
+	[P0-round0, P1-round0, P0-round1, P1-round1, ...]."""
 	clear()
 
-	# Create 8 unique cards for each player (16 total)
-	for p in Card.Power.values():
-		for _player in range(2):
-			var c = card_scene.instantiate()
-			add_child(c)
-			c.power = p
+	for i in range(8):
+		# P0 card: use hand0 char or default power i
+		var p0_power: int = i
+		if not hand0.is_empty() and i < hand0.length():
+			p0_power = Deck.CARD_LETTERS.find(hand0[i])
+		var c0 = card_scene.instantiate()
+		add_child(c0)
+		c0.power = p0_power
+
+		# P1 card: use hand1 char or default power i
+		var p1_power: int = i
+		if not hand1.is_empty() and i < hand1.length():
+			p1_power = Deck.CARD_LETTERS.find(hand1[i])
+		var c1 = card_scene.instantiate()
+		add_child(c1)
+		c1.power = p1_power
 
 
 func pop() -> Card:
