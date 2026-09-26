@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cegfg78d2iqjs" path="res://start/start.gd" id="1_pgi65"]
 [ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="2_s0q5u"]
+[ext_resource type="Texture2D" uid="uid://cfc3ay2prbl6f" path="res://card/characters.png" id="3_pgi65"]
 
 [node name="Start" type="Node2D" unique_id=1602353910]
 script = ExtResource("1_pgi65")
@@ -118,6 +119,61 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 flat = true
+
+[node name="Char0" type="Sprite2D" parent="." unique_id=379317924]
+position = Vector2(4, -1)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+
+[node name="Char1" type="Sprite2D" parent="." unique_id=1577437965]
+position = Vector2(4, 12)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 1
+
+[node name="Char2" type="Sprite2D" parent="." unique_id=320301717]
+position = Vector2(4, 24)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 2
+
+[node name="Char3" type="Sprite2D" parent="." unique_id=206710226]
+position = Vector2(4, 35)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 3
+
+[node name="Char4" type="Sprite2D" parent="." unique_id=2091319644]
+position = Vector2(73, -1)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 4
+
+[node name="Char5" type="Sprite2D" parent="." unique_id=1090353022]
+position = Vector2(73, 12)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 5
+
+[node name="Char6" type="Sprite2D" parent="." unique_id=132761497]
+position = Vector2(73, 23)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 6
+
+[node name="Char7" type="Sprite2D" parent="." unique_id=1044096271]
+position = Vector2(73, 35)
+texture = ExtResource("3_pgi65")
+offset = Vector2(3.5, 6)
+hframes = 8
+frame = 7
 
 [connection signal="pressed" from="PlayLabel/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="SettingsLabel/SettingsButton" to="." method="_on_settings_button_pressed"]
