@@ -29,7 +29,7 @@ signal game_over(winner: int)
 
 @onready var _deal_audio: AudioStreamPlayer = $DealAudioPlayer
 @onready var _round_over_audio: AudioStreamPlayer = $RoundOverAudioPlayer
-@onready var _round_won_audio: AudioStreamPlayer = $RoundWwonAudioPlayer
+@onready var _round_won_audio: AudioStreamPlayer = $RoundWonAudioPlayer
 @onready var _round_tie_audio: AudioStreamPlayer = $RoundTieAudioPlayer
 
 var _game_state: GameState = GameState.new()
@@ -99,6 +99,7 @@ func _deal_cards() -> Signal:
 			_player_hand1.add_child(c)
 			c.position = Vector2.ZERO
 			await Animator.move_card(c, pos, 0.15)
+			_card_list1.text = _build_hand_string(_player_hand1)
 
 	return Animator._immediate()
 
