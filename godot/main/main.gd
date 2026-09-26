@@ -29,7 +29,8 @@ signal game_over(winner: int)
 
 @onready var _deal_audio: AudioStreamPlayer = $DealAudioPlayer
 @onready var _round_over_audio: AudioStreamPlayer = $RoundOverAudioPlayer
-@onready var _game_over_audio: AudioStreamPlayer = $GameOverAudioPlayer
+@onready var _round_won_audio: AudioStreamPlayer = $RoundWwonAudioPlayer
+@onready var _round_tie_audio: AudioStreamPlayer = $RoundTieAudioPlayer
 
 var _game_state: GameState = GameState.new()
 var _round_active: bool = false
@@ -80,6 +81,8 @@ func _deal_cards() -> Signal:
 		# Deal to Player 0 (bottom)
 		var c := _deck.pop()
 		if c:
+			if not _is_speedrun():
+				_deal_audio.play()
 			var pos := _player_hand0.get_append_position()
 			c.face_up = true
 			c.global_position = _deck.global_position
@@ -142,6 +145,8 @@ func _on_card_hand_clicked(card: Card) -> void:
 	if _game_state.ai_levels[0] != GameState.AI_Level.Human:
 		return
 
+	if not _is_speedrun():
+		_deal_audio.play()
 	card.pressed.disconnect(_on_card_hand_clicked)
 	card.reparent(_played_0)
 	card.z_index = RenderingServer.CANVAS_ITEM_Z_MAX
@@ -186,6 +191,8 @@ func _ai_select(player_idx: int, known_opponent_card: Card = null) -> void:
 
 	selected.reparent(tgt)
 	selected.z_index = RenderingServer.CANVAS_ITEM_Z_MAX
+	if not _is_speedrun():
+		_deal_audio.play()
 	await Animator.move_card(selected, tgt.global_position, 0.5)
 
 	# If this player is being spied on, flip card face-up with animation
@@ -248,10 +255,6 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 	# Update scores and display
 	_update_display()
 
-	# Play round sound
-	if not _is_speedrun():
-		_round_over_audio.play()
-
 	# Move cards to discard pile
 	var marker_pos: Vector2 = $DiscardMarker.global_position
 	await Animator.move_card(c0, marker_pos, 0.3)
@@ -268,11 +271,17 @@ func _resolve_round(c0: Card, c1: Card) -> void:
 
 ## Handle game over transition.
 func _handle_game_over(winner: GameState.RoundResult) -> void:
+	await Animator.delay(1.5)
+
 	# Play game over sound
 	if not _is_speedrun():
-		_game_over_audio.play()
-
-	await Animator.delay(1.5)
+		match winner:
+			GameState.RoundResult.HOLD:
+				_round_tie_audio.play()
+			GameState.RoundResult.PLAYER0_WINS_GAME:
+				_round_won_audio.play()
+			GameState.RoundResult.PLAYER1_WINS_GAME:
+				_round_over_audio.play()
 
 	# Determine if there's a winner (PLAYER0_WINS_GAME=3, PLAYER1_WINS_GAME=4)
 	var winner_idx: int = -1

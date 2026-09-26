@@ -3,6 +3,10 @@
 [ext_resource type="Script" uid="uid://bxidm2wlh52rf" path="res://main/main.gd" id="1_xwkvk"]
 [ext_resource type="PackedScene" uid="uid://cex2qhx27kx6p" path="res://deck/deck.tscn" id="2_pjrb6"]
 [ext_resource type="Texture2D" uid="uid://cfc3ay2prbl6f" path="res://card/characters.png" id="4_4dugh"]
+[ext_resource type="AudioStream" uid="uid://bxtkduj623yg1" path="res://audio/card-slide-6.ogg" id="5_kfbq2"]
+[ext_resource type="AudioStream" uid="uid://2vcog88ais1h" path="res://audio/jingles-retro_16.ogg" id="6_67ri8"]
+[ext_resource type="AudioStream" uid="uid://b5mguebh2kyfc" path="res://audio/RoundWon.ogg" id="7_grrlh"]
+[ext_resource type="AudioStream" uid="uid://csabdybwq3xhg" path="res://audio/jingles-retro_14.ogg" id="8_grrlh"]
 [ext_resource type="Texture2D" uid="uid://baf5mpfexuvjq" path="res://main/menu.png" id="15_5xyti"]
 [ext_resource type="LabelSettings" uid="uid://bqe2prdrlv84l" path="res://tres/label_settings.tres" id="16_n3o0a"]
 
@@ -160,17 +164,18 @@ label_settings = ExtResource("16_n3o0a")
 horizontal_alignment = 1
 
 [node name="DealAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=248928592]
+stream = ExtResource("5_kfbq2")
 volume_db = -10.0
 
 [node name="RoundOverAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=1524916702]
+stream = ExtResource("6_67ri8")
 volume_db = -10.0
 
 [node name="RoundWonAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=1523628593]
+stream = ExtResource("7_grrlh")
 
-[node name="GameOverAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=421726183]
-volume_db = -10.0
-
-[node name="GameWonAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=505401809]
+[node name="RoundTieAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=1216416333]
+stream = ExtResource("8_grrlh")
 
 [node name="MenuButton" type="TextureButton" parent="." unique_id=1431577744]
 offset_left = 78.0
