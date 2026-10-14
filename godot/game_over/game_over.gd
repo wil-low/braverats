@@ -56,8 +56,8 @@ func show_game(gs: GameState) -> void:
 			GameState.RoundResult.PLAYER1_WINS:
 				p1_mark = String.chr(166) if pts == 2 else "+"
 		## P1 card on top line (y=24 in original), P0 card on bottom (y=32)
-		p1_rounds += Card.POWER_NAMES[p1_power][0] + p1_mark
-		p0_rounds += Card.POWER_NAMES[p0_power][0] + p0_mark
+		p1_rounds += String.num_uint64(p1_power) + p1_mark
+		p0_rounds += String.num_uint64(p0_power) + p0_mark
 
 	rounds_1.text = p1_rounds if not p1_rounds.is_empty() else "-"
 	rounds_0.text = p0_rounds if not p0_rounds.is_empty() else "-"
